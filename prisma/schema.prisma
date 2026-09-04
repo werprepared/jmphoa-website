@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MEMBERSHIP_COORDINATOR
+  BOARD_MEMBER
+  COMMITTEE_ARCH
+  COMMITTEE_SOCIAL
+  MEMBER
+}
+
+enum MemberStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum Committee {
+  ARCHITECTURE
+  SOCIAL
+}
+
+enum CommitteeRole {
+  CHAIR
+  MEMBER
+}
+
+enum DocCategory {
+  HOA_GENERAL
+  BOARD
+  COMMITTEE_ARCH
+  COMMITTEE_SOCIAL
+}
+
+enum ContactRecipient {
+  BOARD
+  ARCHITECTURE
+  SOCIAL
+}
+
+model User {
+  id             String       @id @default(cuid())
+  name           String
+  email          String       @unique
+  passwordHash   String
+  role           Role         @default(MEMBER)
+  status         MemberStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  profile             MemberProfile?
+  boardPosition       BoardPosition?
+  committeeMemberships CommitteeMembership[]
+  documents           Document[]
+  events              CalendarEvent[]
+  posts               CommunityPost[]
+  comments            CommunityComment[]
+  surveyResponses     SurveyResponse[]
+}
+
+model MemberProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address        String?
+  phone          String?
+  publicEmail    String?
+  children       String?
+  pets           String?
+  interests      String?
+  workInfo       String?
+  showInDirectory Boolean @default(true)
+  photoUrl       String?
+  updatedAt      DateTime @updatedAt
+}
+
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  parentId  String?
+  parent    Folder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Folder[] @relation("FolderTree")
+  category  DocCategory @default(HOA_GENERAL)
+  sortOrder Int      @default(0)
+  documents Document[]
+  createdAt DateTime @default(now())
+}
+
+model Document {
+  id           String      @id @default(cuid())
+  title        String
+  fileUrl      String
+  fileType     String?
+  category     DocCategory @default(HOA_GENERAL)
+  folderId     String?
+  folder       Folder?     @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  uploadedById String
+  uploadedBy   User        @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime    @default(now())
+}
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  location    String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  allDay      Boolean  @default(false)
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model CommitteeMembership {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  committee Committee
+  role      CommitteeRole @default(MEMBER)
+  approved  Boolean       @default(false)
+  createdAt DateTime      @default(now())
+
+  @@unique([userId, committee])
+}
+
+model BoardPosition {
+  id        String   @id @default(cuid())
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  title     String
+  sortOrder Int      @default(0)
+}
+
+model Sponsor {
+  id        String   @id @default(cuid())
+  name      String
+  logoUrl   String?
+  linkUrl   String?
+  blurb     String?
+  sortOrder Int      @default(0)
+}
+
+model FaqItem {
+  id        String @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int    @default(0)
+}
+
+model PageContent {
+  key           String   @id
+  title         String?
+  body          String?
+  imageUrl      String?
+  secondaryUrl  String?
+  updatedAt     DateTime @updatedAt
+}
+
+model CommunityPost {
+  id        String            @id @default(cuid())
+  authorId  String
+  author    User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  imageUrl  String?
+  createdAt DateTime          @default(now())
+  comments  CommunityComment[]
+}
+
+model CommunityComment {
+  id        String        @id @default(cuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime      @default(now())
+}
+
+model SurveyQuestion {
+  id        String   @id @default(cuid())
+  question  String
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  answers   SurveyAnswer[]
+}
+
+model SurveyResponse {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  answers   SurveyAnswer[]
+
+  @@unique([userId])
+}
+
+model SurveyAnswer {
+  id         String         @id @default(cuid())
+  responseId String
+  response   SurveyResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  questionId String
+  question   SurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  value      String
+}
+
+model ContactMessage {
+  id        String           @id @default(cuid())
+  recipient ContactRecipient
+  fromName  String
+  fromEmail String
+  message   String
+  createdAt DateTime         @default(now())
+}
