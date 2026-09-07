@@ -45,6 +45,7 @@ yarn-error.log*
 !/public/uploads/.gitkeep
 
 SEED_CREDENTIALS.txt
+~$*
 
 # typescript
 *.tsbuildinfo
