@@ -29,7 +29,7 @@ export default async function CalendarPage() {
     <div>
       <PageHeader title="Community Calendar" subtitle="Board meetings, social events, and neighborhood happenings." />
       <div className="max-w-4xl mx-auto px-4 py-10">
-        {session?.user && canManageCalendar(session.user.role) && (
+        {session?.user && canManageCalendar(session.user.roles) && (
           <div className="mb-6 text-right">
             <Link href="/admin/calendar" className="text-primary font-medium hover:underline text-sm">
               Manage events →

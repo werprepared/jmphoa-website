@@ -1,7 +1,7 @@
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { requireApprovedUser } from "@/lib/authz";
-import { ROLE_LABELS } from "@/lib/roles";
+import { roleLabels } from "@/lib/roles";
 
 const LINKS = [
   { href: "/members/directory", label: "Member Directory", desc: "Look up and connect with neighbors" },
@@ -18,7 +18,7 @@ export default async function MembersHome() {
 
   return (
     <div>
-      <PageHeader title={`Welcome back, ${user.name?.split(" ")[0] || "neighbor"}`} subtitle={ROLE_LABELS[user.role]} />
+      <PageHeader title={`Welcome back, ${user.name?.split(" ")[0] || "neighbor"}`} subtitle={roleLabels(user.roles)} />
       <div className="max-w-5xl mx-auto px-4 py-10 grid gap-4 sm:grid-cols-2">
         {LINKS.map((l) => (
           <Link key={l.href} href={l.href} className="bg-card border border-border rounded-lg p-5 hover:border-primary hover:shadow-md transition-all">

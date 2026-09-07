@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import PageHeader from "@/components/PageHeader";
 
@@ -20,7 +21,19 @@ export default async function BoardPage() {
             {positions.map((p) => (
               <div key={p.id} className="bg-card border border-border rounded-lg p-5">
                 <div className="font-semibold text-navy">{p.title}</div>
-                <div className="text-muted">{p.user?.name || "Vacant"}</div>
+                <div className="text-muted">
+                  {p.user ? (
+                    p.user.profile?.showInDirectory === false ? (
+                      p.user.name
+                    ) : (
+                      <Link href={`/members/directory/${p.user.id}`} className="text-primary hover:underline">
+                        {p.user.name}
+                      </Link>
+                    )
+                  ) : (
+                    "Vacant"
+                  )}
+                </div>
                 {p.user?.profile?.publicEmail && (
                   <div className="text-sm text-primary mt-1">{p.user.profile.publicEmail}</div>
                 )}

@@ -9,25 +9,25 @@ export default async function AdminDashboard() {
   const user = await requireApprovedUser();
 
   const [pendingUsers, pendingCommittees, upcomingEvents, documentCount] = await Promise.all([
-    canManageMembers(user.role) ? prisma.user.count({ where: { status: "PENDING" } }) : 0,
-    isAdmin(user.role) ? prisma.committeeMembership.count({ where: { approved: false } }) : 0,
+    canManageMembers(user.roles) ? prisma.user.count({ where: { status: "PENDING" } }) : 0,
+    isAdmin(user.roles) ? prisma.committeeMembership.count({ where: { approved: false } }) : 0,
     prisma.calendarEvent.count({ where: { startsAt: { gte: new Date() } } }),
     prisma.document.count(),
   ]);
 
   const cards = [
-    canManageMembers(user.role) && {
+    canManageMembers(user.roles) && {
       href: "/admin/users",
       label: "Pending member approvals",
       value: pendingUsers,
     },
-    isAdmin(user.role) && {
+    isAdmin(user.roles) && {
       href: "/admin/committees",
       label: "Pending committee requests",
       value: pendingCommittees,
     },
-    canManageCalendar(user.role) && { href: "/admin/calendar", label: "Upcoming events", value: upcomingEvents },
-    canManageCalendar(user.role) && { href: "/admin/documents", label: "Documents on file", value: documentCount },
+    canManageCalendar(user.roles) && { href: "/admin/calendar", label: "Upcoming events", value: upcomingEvents },
+    canManageCalendar(user.roles) && { href: "/admin/documents", label: "Documents on file", value: documentCount },
   ].filter(Boolean) as { href: string; label: string; value: number }[];
 
   return (
@@ -42,7 +42,7 @@ export default async function AdminDashboard() {
           </Link>
         ))}
       </div>
-      {canEditSiteContent(user.role) && (
+      {canEditSiteContent(user.roles) && (
         <div className="mt-8">
           <Link href="/admin/content" className="text-primary font-medium hover:underline">
             Edit Home, About, FAQ & Sponsors content →

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -51,11 +51,11 @@ model User {
   name           String
   email          String       @unique
   passwordHash   String
-  role           Role         @default(MEMBER)
   status         MemberStatus @default(PENDING)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
+  roles               UserRole[]
   profile             MemberProfile?
   boardPosition       BoardPosition?
   committeeMemberships CommitteeMembership[]
@@ -64,6 +64,18 @@ model User {
   posts               CommunityPost[]
   comments            CommunityComment[]
   surveyResponses     SurveyResponse[]
+  surveysCreated      Survey[]
+  spouseOfProfiles    MemberProfile[] @relation("SpouseLink")
+}
+
+/** A single role grant. A user can hold several at once (e.g. Board Member + Membership Coordinator). */
+model UserRole {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role
+
+  @@unique([userId, role])
 }
 
 model MemberProfile {
@@ -79,6 +91,9 @@ model MemberProfile {
   workInfo       String?
   showInDirectory Boolean @default(true)
   photoUrl       String?
+  spouseName     String?
+  spouseId       String?
+  spouse         User?    @relation("SpouseLink", fields: [spouseId], references: [id], onDelete: SetNull)
   updatedAt      DateTime @updatedAt
 }
 
@@ -169,6 +184,7 @@ model CommunityPost {
   id        String            @id @default(cuid())
   authorId  String
   author    User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  subject   String            @default("")
   body      String
   imageUrl  String?
   createdAt DateTime          @default(now())
@@ -185,31 +201,38 @@ model CommunityComment {
   createdAt DateTime      @default(now())
 }
 
-model SurveyQuestion {
-  id        String   @id @default(cuid())
-  question  String
-  sortOrder Int      @default(0)
-  active    Boolean  @default(true)
-  answers   SurveyAnswer[]
+enum SurveyVote {
+  STRONGLY_AGREE
+  AGREE
+  DISAGREE
+  STRONGLY_DISAGREE
+  UNSURE
+}
+
+model Survey {
+  id             String           @id @default(cuid())
+  title          String
+  description    String?
+  attachmentUrl  String?
+  attachmentName String?
+  createdById    String
+  createdBy      User             @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt      DateTime         @default(now())
+  responses      SurveyResponse[]
 }
 
 model SurveyResponse {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
+  surveyId  String
+  survey    Survey     @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  answers   SurveyAnswer[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vote      SurveyVote
+  points    Int
+  comment   String?
+  createdAt DateTime   @default(now())
 
-  @@unique([userId])
-}
-
-model SurveyAnswer {
-  id         String         @id @default(cuid())
-  responseId String
-  response   SurveyResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
-  questionId String
-  question   SurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  value      String
+  @@unique([surveyId, userId])
 }
 
 model ContactMessage {

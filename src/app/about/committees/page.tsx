@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import PageHeader from "@/components/PageHeader";
+import { lastNameSortKey } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -11,9 +13,9 @@ const COMMITTEES = [
 export default async function CommitteesPage() {
   const memberships = await prisma.committeeMembership.findMany({
     where: { approved: true },
-    include: { user: true },
-    orderBy: { role: "asc" },
+    include: { user: { include: { profile: true } } },
   });
+  memberships.sort((a, b) => lastNameSortKey(a.user.name).localeCompare(lastNameSortKey(b.user.name)));
 
   return (
     <div>
@@ -35,7 +37,13 @@ export default async function CommitteesPage() {
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {members.map((m) => (
                     <li key={m.id} className="bg-card border border-border rounded-lg px-4 py-3 flex justify-between">
-                      <span>{m.user.name}</span>
+                      {m.user.profile?.showInDirectory === false ? (
+                        <span>{m.user.name}</span>
+                      ) : (
+                        <Link href={`/members/directory/${m.user.id}`} className="text-primary hover:underline">
+                          {m.user.name}
+                        </Link>
+                      )}
                       {m.role === "CHAIR" && <span className="text-xs text-gold font-medium">Chair</span>}
                     </li>
                   ))}

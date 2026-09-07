@@ -23,7 +23,7 @@ export default async function HomePage() {
       <section className="relative bg-navy text-white">
         {hero?.imageUrl && (
           <div className="absolute inset-0">
-            <Image src={hero.imageUrl} alt="" fill className="object-cover opacity-40" priority />
+            <Image src={hero.imageUrl} alt="" fill className="object-cover opacity-55" priority />
           </div>
         )}
         <div className="relative max-w-6xl mx-auto px-4 py-20 text-center">

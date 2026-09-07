@@ -18,10 +18,10 @@ export async function requireApprovedUser() {
   return user;
 }
 
-/** Throws unless the current user's role is one of `roles`. Implies approved. */
+/** Throws unless the current user holds at least one of `roles`. Implies approved. */
 export async function requireRole(...roles: Role[]) {
   const user = await requireApprovedUser();
-  if (!roles.includes(user.role)) {
+  if (!(user.roles ?? []).some((r) => roles.includes(r))) {
     throw new AuthError("You do not have permission to do that.");
   }
   return user;

@@ -1,6 +1,6 @@
 import { requireRole } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
-import { ROLE_LABELS, isAdmin } from "@/lib/roles";
+import { roleLabels, isAdmin } from "@/lib/roles";
 import { approveUserAction, rejectUserAction, removeUserAction } from "./actions";
 import RoleSelect from "./RoleSelect";
 import { format } from "date-fns";
@@ -11,7 +11,7 @@ export default async function AdminUsersPage() {
   const actor = await requireRole("ADMIN", "MEMBERSHIP_COORDINATOR");
 
   const users = await prisma.user.findMany({
-    include: { profile: true },
+    include: { profile: true, roles: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -76,14 +76,14 @@ export default async function AdminUsersPage() {
                     <span className={u.status === "APPROVED" ? "text-primary" : "text-muted"}>{u.status}</span>
                   </td>
                   <td className="px-4 py-2">
-                    {isAdmin(actor.role) && u.id !== actor.id ? (
-                      <RoleSelect userId={u.id} role={u.role} />
+                    {isAdmin(actor.roles) && u.id !== actor.id ? (
+                      <RoleSelect userId={u.id} roles={u.roles.map((r) => r.role)} />
                     ) : (
-                      ROLE_LABELS[u.role]
+                      roleLabels(u.roles.map((r) => r.role))
                     )}
                   </td>
                   <td className="px-4 py-2 text-right">
-                    {u.id !== actor.id && (
+                    {u.id !== actor.id && !isAdmin(u.roles.map((r) => r.role)) && (
                       <form action={async () => { "use server"; await removeUserAction(u.id); }}>
                         <button className="text-muted hover:text-red-600 text-xs">Remove</button>
                       </form>

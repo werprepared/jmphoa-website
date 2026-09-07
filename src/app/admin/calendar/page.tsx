@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { saveEventAction, deleteEventAction } from "./actions";
+import NotifyMembersField from "@/components/NotifyMembersField";
 import { format } from "date-fns";
 
 export const dynamic = "force-dynamic";
@@ -18,9 +19,10 @@ export default async function AdminCalendarPage({
   await requireRole("ADMIN", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL");
   const { edit } = await searchParams;
 
-  const [events, editing] = await Promise.all([
+  const [events, editing, members] = await Promise.all([
     prisma.calendarEvent.findMany({ orderBy: { startsAt: "asc" } }),
     edit ? prisma.calendarEvent.findUnique({ where: { id: edit } }) : null,
+    prisma.user.findMany({ where: { status: "APPROVED" }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
   ]);
 
   return (
@@ -57,6 +59,7 @@ export default async function AdminCalendarPage({
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="allDay" defaultChecked={editing?.allDay} /> All day event
         </label>
+        {!editing && <NotifyMembersField members={members} />}
         <div className="flex gap-2">
           <button className="bg-primary hover:bg-primary-dark text-white text-sm font-medium px-4 py-2 rounded transition-colors">
             {editing ? "Save changes" : "Create event"}

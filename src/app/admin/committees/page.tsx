@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
+import { lastNameSortKey } from "@/lib/format";
 import { approveCommitteeRequestAction, removeCommitteeMemberAction, setCommitteeChairAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +20,10 @@ export default async function AdminCommitteesPage() {
 
       {COMMITTEES.map((c) => {
         const all = memberships.filter((m) => m.committee === c.key);
-        const pending = all.filter((m) => !m.approved);
-        const approved = all.filter((m) => m.approved);
+        const byName = (a: (typeof all)[number], b: (typeof all)[number]) =>
+          lastNameSortKey(a.user.name).localeCompare(lastNameSortKey(b.user.name));
+        const pending = all.filter((m) => !m.approved).sort(byName);
+        const approved = all.filter((m) => m.approved).sort(byName);
         return (
           <section key={c.key}>
             <h2 className="font-semibold text-navy mb-3">{c.label}</h2>

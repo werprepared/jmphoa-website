@@ -17,8 +17,8 @@ async function main() {
         name: "Site Admin",
         email: adminEmail,
         passwordHash,
-        role: "ADMIN",
         status: "APPROVED",
+        roles: { create: { role: "ADMIN" } },
         profile: { create: { showInDirectory: false } },
       },
     });

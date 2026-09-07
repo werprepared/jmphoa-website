@@ -13,6 +13,12 @@ export default function NewPostForm() {
 
   return (
     <form ref={formRef} action={formAction} className="bg-card border border-border rounded-lg p-4 mb-8">
+      <input
+        name="subject"
+        required
+        placeholder="Subject"
+        className="w-full border border-border rounded px-3 py-2 mb-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+      />
       <textarea
         name="body"
         required

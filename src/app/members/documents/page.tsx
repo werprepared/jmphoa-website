@@ -29,11 +29,11 @@ export default async function DocumentsPage({
   const [subfolders, documents, crumbs] = await Promise.all([
     prisma.folder.findMany({
       where: { parentId: folderId ?? null },
-      orderBy: { sortOrder: "asc" },
+      orderBy: { name: "asc" },
     }),
     prisma.document.findMany({
       where: { folderId: folderId ?? null },
-      orderBy: { createdAt: "desc" },
+      orderBy: { title: "asc" },
       include: { uploadedBy: true },
     }),
     getBreadcrumb(folderId ?? null),

@@ -28,10 +28,11 @@ export default auth((req) => {
   if (isMembers) return NextResponse.next();
 
   // Everything below is /admin/**
-  if (user.role === "ADMIN") return NextResponse.next();
+  const roles = user.roles ?? [];
+  if (roles.includes("ADMIN")) return NextResponse.next();
 
   if (path.startsWith("/admin/users")) {
-    if (user.role === "MEMBERSHIP_COORDINATOR") return NextResponse.next();
+    if (roles.includes("MEMBERSHIP_COORDINATOR")) return NextResponse.next();
     return NextResponse.redirect(new URL("/members", nextUrl));
   }
 
@@ -40,15 +41,12 @@ export default auth((req) => {
   }
 
   if (path.startsWith("/admin/calendar") || path.startsWith("/admin/documents")) {
-    if (UPLOAD_ROLES.includes(user.role)) return NextResponse.next();
+    if (roles.some((r) => UPLOAD_ROLES.includes(r))) return NextResponse.next();
     return NextResponse.redirect(new URL("/members", nextUrl));
   }
 
   if (path === "/admin" || path === "/admin/") {
-    if (
-      user.role === "MEMBERSHIP_COORDINATOR" ||
-      UPLOAD_ROLES.includes(user.role)
-    ) {
+    if (roles.includes("MEMBERSHIP_COORDINATOR") || roles.some((r) => UPLOAD_ROLES.includes(r))) {
       return NextResponse.next();
     }
     return NextResponse.redirect(new URL("/members", nextUrl));

@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { ROLE_LABELS } from "@/lib/roles";
+import { roleLabels } from "@/lib/roles";
 import type { Role } from "@prisma/client";
 import { logoutAction } from "@/app/(auth)/actions";
 
-type NavUser = { name: string; role: Role } | null;
+type NavUser = { name: string; roles: Role[] } | null;
 
 const ABOUT_LINKS = [
   { href: "/about", label: "Overview" },
@@ -20,6 +20,7 @@ const ABOUT_LINKS = [
 const MEMBER_LINKS = [
   { href: "/members", label: "Members Home" },
   { href: "/members/directory", label: "Member Directory" },
+  { href: "/members/profile", label: "My Profile" },
   { href: "/members/community", label: "Community Wall" },
   { href: "/members/committees", label: "Join a Committee" },
   { href: "/members/documents", label: "HOA Documents" },
@@ -80,8 +81,8 @@ export default function SiteNav({ user }: { user: NavUser }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const isAdminish =
     user &&
-    ["ADMIN", "MEMBERSHIP_COORDINATOR", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL"].includes(
-      user.role
+    (user.roles ?? []).some((r) =>
+      ["ADMIN", "MEMBERSHIP_COORDINATOR", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL"].includes(r)
     );
 
   return (
@@ -143,7 +144,7 @@ export default function SiteNav({ user }: { user: NavUser }) {
               <>
                 <span className="text-sm text-white/90">
                   {user.name}
-                  <span className="text-white/60"> · {ROLE_LABELS[user.role]}</span>
+                  <span className="text-white/60"> · {roleLabels(user.roles)}</span>
                 </span>
                 <form action={logoutAction}>
                   <button className="text-sm bg-primary-dark hover:bg-navy px-3 py-1.5 rounded transition-colors">

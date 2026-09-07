@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateProfileAction, type ProfileState } from "./actions";
+import SpouseField from "./SpouseField";
 
 type Profile = {
   address: string | null;
@@ -13,6 +14,8 @@ type Profile = {
   workInfo: string | null;
   showInDirectory: boolean;
   photoUrl: string | null;
+  spouseName: string | null;
+  spouseId: string | null;
 } | null;
 
 function Field({
@@ -66,6 +69,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
       <Field label="Address" name="address" defaultValue={profile?.address} />
       <Field label="Phone" name="phone" defaultValue={profile?.phone} />
       <Field label="Email (shown in directory)" name="publicEmail" defaultValue={profile?.publicEmail} />
+      <SpouseField defaultName={profile?.spouseName ?? null} defaultSpouseId={profile?.spouseId ?? null} />
       <Field label="Children" name="children" defaultValue={profile?.children} placeholder="e.g. Emma (8), Jack (5)" />
       <Field label="Pets" name="pets" defaultValue={profile?.pets} placeholder="e.g. Bella (golden retriever)" />
       <Field label="Interests" name="interests" defaultValue={profile?.interests} placeholder="e.g. hiking, book club" />

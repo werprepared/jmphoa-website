@@ -21,7 +21,7 @@ export const authConfig = {
       // in - see the note in /admin/users.
       if (user) {
         token.id = user.id!;
-        token.role = user.role;
+        token.roles = user.roles;
         token.status = user.status;
       }
       return token;
@@ -29,7 +29,7 @@ export const authConfig = {
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
-        session.user.role = token.role;
+        session.user.roles = token.roles;
         session.user.status = token.status;
       }
       return session;

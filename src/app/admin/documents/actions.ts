@@ -5,11 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { requireApprovedUser } from "@/lib/authz";
 import { uploadableCategoriesForRole } from "@/lib/roles";
 import { saveDocument, UploadError } from "@/lib/upload";
+import { notifyMembers, readNotifyChoice, SITE_URL } from "@/lib/notify";
 import type { DocCategory } from "@prisma/client";
 
 async function assertCategoryAllowed(category: DocCategory) {
   const user = await requireApprovedUser();
-  const allowed = uploadableCategoriesForRole(user.role);
+  const allowed = uploadableCategoriesForRole(user.roles);
   if (!allowed.includes(category)) {
     throw new Error("You don't have permission to manage documents in that category.");
   }
@@ -54,6 +55,40 @@ export async function uploadDocumentAction(_prev: UploadDocState, formData: Form
     throw err;
   }
 
+  const { scope, userIds } = readNotifyChoice(formData);
+  await notifyMembers({
+    scope,
+    userIds,
+    subject: `New document: ${title}`,
+    text: `${user.name} added a new document, "${title}", to the John Mitchell Preserve HOA website.\n\nView it at: ${SITE_URL}/members/documents`,
+  });
+
+  revalidatePath("/admin/documents");
+  revalidatePath("/members/documents");
+}
+
+export async function renameFolderAction(id: string, name: string) {
+  const folder = await prisma.folder.findUnique({ where: { id } });
+  if (!folder) return;
+  await assertCategoryAllowed(folder.category);
+
+  const trimmed = name.trim();
+  if (!trimmed) return;
+
+  await prisma.folder.update({ where: { id }, data: { name: trimmed } });
+  revalidatePath("/admin/documents");
+  revalidatePath("/members/documents");
+}
+
+export async function renameDocumentAction(id: string, title: string) {
+  const doc = await prisma.document.findUnique({ where: { id } });
+  if (!doc) return;
+  await assertCategoryAllowed(doc.category);
+
+  const trimmed = title.trim();
+  if (!trimmed) return;
+
+  await prisma.document.update({ where: { id }, data: { title: trimmed } });
   revalidatePath("/admin/documents");
   revalidatePath("/members/documents");
 }

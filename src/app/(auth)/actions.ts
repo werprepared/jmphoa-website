@@ -64,8 +64,8 @@ export async function registerAction(_prev: RegisterState, formData: FormData): 
       name,
       email: normalizedEmail,
       passwordHash,
-      role: "MEMBER",
       status: "PENDING",
+      roles: { create: { role: "MEMBER" } },
       profile: { create: { address } },
     },
   });
