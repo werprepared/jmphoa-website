@@ -6,7 +6,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "15mb",
     },
   },
-  serverExternalPackages: ["jsdom", "isomorphic-dompurify"],
   images: {
     remotePatterns: [{ protocol: "https", hostname: "*.public.blob.vercel-storage.com" }],
   },
