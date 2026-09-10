@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import PageHeader from "@/components/PageHeader";
 import RichText from "@/components/RichText";
 import Link from "next/link";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,16 @@ export default async function AboutPage() {
       <PageHeader title="About John Mitchell Preserve" />
       <div className="max-w-4xl mx-auto px-4 py-10">
         {content?.body ? (
-          <RichText html={content.body} />
+          content.imageUrl ? (
+            <div className="grid gap-8 sm:grid-cols-2 items-center mb-8">
+              <div className="relative h-64 rounded-lg overflow-hidden">
+                <Image src={content.imageUrl} alt="" fill className="object-cover" />
+              </div>
+              <RichText html={content.body} />
+            </div>
+          ) : (
+            <RichText html={content.body} />
+          )
         ) : (
           <p className="text-muted">
             John Mitchell Preserve is a friendly, well-kept community. Learn more about our Board,
