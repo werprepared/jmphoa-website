@@ -4,6 +4,7 @@ import PageHeader from "@/components/PageHeader";
 import { requireApprovedUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { formatPhone } from "@/lib/format";
+import MessageMemberForm from "../MessageMemberForm";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ function Field({ label, value }: { label: string; value: string | null }) {
 }
 
 export default async function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  await requireApprovedUser();
+  const viewer = await requireApprovedUser();
   const { id } = await params;
 
   const user = await prisma.user.findUnique({
@@ -78,6 +79,12 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
             !profile.interests &&
             !profile.workInfo && <p className="text-muted text-sm">This member hasn&apos;t shared any details yet.</p>}
         </div>
+
+        {viewer.id !== user.id && (
+          <div className="mt-6">
+            <MessageMemberForm recipientId={user.id} recipientName={user.name} />
+          </div>
+        )}
 
         <Link href="/members/directory" className="inline-block mt-6 text-sm text-primary hover:underline">
           ← Back to Directory

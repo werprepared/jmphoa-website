@@ -43,8 +43,15 @@ export async function removeUserAction(userId: string) {
 }
 
 export async function setUserRolesAction(userId: string, roles: Role[]) {
-  const actor = await requireRole("ADMIN");
+  const actor = await requireRole("ADMIN", "MEMBERSHIP_COORDINATOR");
   if (actor.id === userId) throw new Error("You can't change your own roles here.");
+
+  if (!actor.roles.includes("ADMIN")) {
+    const target = await prisma.user.findUnique({ where: { id: userId }, include: { roles: true } });
+    if (target?.roles.some((r) => r.role === "ADMIN")) {
+      throw new Error("Only the Admin can change the Admin's roles.");
+    }
+  }
 
   // A user always needs at least one role; fall back to plain Member if none were selected.
   const uniqueRoles = [...new Set(roles.length > 0 ? roles : (["MEMBER"] as Role[]))];

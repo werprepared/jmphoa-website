@@ -22,7 +22,7 @@ function getTransporter() {
  * Callers should still persist the underlying message to the database so
  * nothing is lost while email isn't configured yet.
  */
-export async function sendMail(opts: { to: string; subject: string; text: string }) {
+export async function sendMail(opts: { to: string; subject: string; text: string; replyTo?: string }) {
   const t = getTransporter();
   if (!t) {
     console.log(`[mailer] SMTP not configured - would send to ${opts.to}: ${opts.subject}\n${opts.text}`);
@@ -33,6 +33,7 @@ export async function sendMail(opts: { to: string; subject: string; text: string
     to: opts.to,
     subject: opts.subject,
     text: opts.text,
+    replyTo: opts.replyTo,
   });
   return { sent: true as const };
 }

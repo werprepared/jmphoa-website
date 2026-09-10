@@ -1,6 +1,6 @@
 import { requireRole } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
-import { roleLabels, isAdmin } from "@/lib/roles";
+import { roleLabels, isAdmin, canManageMembers } from "@/lib/roles";
 import { approveUserAction, rejectUserAction, removeUserAction } from "./actions";
 import RoleSelect from "./RoleSelect";
 import { format } from "date-fns";
@@ -68,7 +68,11 @@ export default async function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {others.map((u) => (
+              {others.map((u) => {
+                const targetIsAdmin = isAdmin(u.roles.map((r) => r.role));
+                const canEditThisUsersRoles =
+                  canManageMembers(actor.roles) && u.id !== actor.id && (isAdmin(actor.roles) || !targetIsAdmin);
+                return (
                 <tr key={u.id} className="border-t border-border bg-card">
                   <td className="px-4 py-2">{u.name}</td>
                   <td className="px-4 py-2 text-muted">{u.email}</td>
@@ -76,21 +80,22 @@ export default async function AdminUsersPage() {
                     <span className={u.status === "APPROVED" ? "text-primary" : "text-muted"}>{u.status}</span>
                   </td>
                   <td className="px-4 py-2">
-                    {isAdmin(actor.roles) && u.id !== actor.id ? (
+                    {canEditThisUsersRoles ? (
                       <RoleSelect userId={u.id} roles={u.roles.map((r) => r.role)} />
                     ) : (
                       roleLabels(u.roles.map((r) => r.role))
                     )}
                   </td>
                   <td className="px-4 py-2 text-right">
-                    {u.id !== actor.id && !isAdmin(u.roles.map((r) => r.role)) && (
+                    {u.id !== actor.id && !targetIsAdmin && (
                       <form action={async () => { "use server"; await removeUserAction(u.id); }}>
                         <button className="text-muted hover:text-red-600 text-xs">Remove</button>
                       </form>
                     )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

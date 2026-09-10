@@ -72,7 +72,11 @@ export async function addSponsorAction(formData: FormData) {
   let logoUrl: string | undefined;
   const logo = formData.get("logo");
   if (logo instanceof File && logo.size > 0) {
-    logoUrl = await saveImage(logo);
+    try {
+      logoUrl = await saveImage(logo);
+    } catch (err) {
+      console.error("Sponsor logo upload failed:", err);
+    }
   }
 
   const count = await prisma.sponsor.count();

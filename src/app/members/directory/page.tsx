@@ -22,6 +22,7 @@ export default async function DirectoryPage() {
       id: u.id,
       name: lastFirst(u.name),
       address: u.profile?.address || null,
+      photoUrl: u.profile?.photoUrl || null,
       sortKey: lastNameSortKey(u.name),
     }))
     .sort((a, b) => a.sortKey.localeCompare(b.sortKey));

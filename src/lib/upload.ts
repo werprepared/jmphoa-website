@@ -37,8 +37,16 @@ async function saveFile(file: File, allowed: string[]) {
   const filename = `${randomUUID()}${ext}`;
 
   if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const blob = await put(filename, file, { access: "public" });
-    return blob.url;
+    try {
+      const blob = await put(filename, file, {
+        access: "public",
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      });
+      return blob.url;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new UploadError(`Upload failed: ${message}`);
+    }
   }
 
   await mkdir(UPLOAD_DIR, { recursive: true });
