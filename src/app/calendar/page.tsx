@@ -12,6 +12,7 @@ export default async function CalendarPage() {
   const events = await prisma.calendarEvent.findMany({
     where: { startsAt: { gte: new Date(new Date().setMonth(new Date().getMonth() - 1)) } },
     orderBy: { startsAt: "asc" },
+    include: { attachments: true },
   });
 
   const groups: { month: string; events: typeof events }[] = [];
@@ -59,6 +60,22 @@ export default async function CalendarPage() {
                       {e.location ? ` · ${e.location}` : ""}
                     </div>
                     {e.description && <p className="text-sm text-muted mt-1">{e.description}</p>}
+                    {e.attachments.length > 0 && (
+                      <ul className="mt-2 space-y-1">
+                        {e.attachments.map((a) => (
+                          <li key={a.id}>
+                            <a
+                              href={a.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm text-primary hover:underline"
+                            >
+                              📎 {a.fileName}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </li>
               ))}

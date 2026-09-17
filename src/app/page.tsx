@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import RichText from "@/components/RichText";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +11,7 @@ export default async function HomePage() {
     prisma.pageContent.findUnique({ where: { key: "home_hero" } }),
     prisma.pageContent.findUnique({ where: { key: "home_intro" } }),
     prisma.calendarEvent.findMany({
-      where: { startsAt: { gte: new Date() } },
+      where: { startsAt: { gte: startOfDay(new Date()) } },
       orderBy: { startsAt: "asc" },
       take: 4,
     }),

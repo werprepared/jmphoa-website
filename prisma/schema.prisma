@@ -52,6 +52,8 @@ model User {
   email          String       @unique
   passwordHash   String
   status         MemberStatus @default(PENDING)
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -133,6 +135,16 @@ model CalendarEvent {
   createdById String
   createdBy   User     @relation(fields: [createdById], references: [id])
   createdAt   DateTime @default(now())
+  attachments EventAttachment[]
+}
+
+model EventAttachment {
+  id        String        @id @default(cuid())
+  eventId   String
+  event     CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  fileUrl   String
+  fileName  String
+  createdAt DateTime      @default(now())
 }
 
 model CommitteeMembership {

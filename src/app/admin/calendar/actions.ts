@@ -6,6 +6,20 @@ import { format } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/authz";
 import { notifyMembers, readNotifyChoice, SITE_URL } from "@/lib/notify";
+import { saveDocument } from "@/lib/upload";
+
+async function saveEventAttachments(eventId: string, formData: FormData) {
+  const files = formData.getAll("attachments");
+  for (const file of files) {
+    if (!(file instanceof File) || file.size === 0) continue;
+    try {
+      const fileUrl = await saveDocument(file);
+      await prisma.eventAttachment.create({ data: { eventId, fileUrl, fileName: file.name } });
+    } catch (err) {
+      console.error("Event attachment upload failed:", err);
+    }
+  }
+}
 
 export async function saveEventAction(formData: FormData) {
   const user = await requireRole("ADMIN", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL");
@@ -23,10 +37,12 @@ export async function saveEventAction(formData: FormData) {
 
   if (id) {
     await prisma.calendarEvent.update({ where: { id }, data: { title, description, location, startsAt, endsAt, allDay } });
+    await saveEventAttachments(id, formData);
   } else {
-    await prisma.calendarEvent.create({
+    const event = await prisma.calendarEvent.create({
       data: { title, description, location, startsAt, endsAt, allDay, createdById: user.id },
     });
+    await saveEventAttachments(event.id, formData);
 
     const { scope, userIds } = readNotifyChoice(formData);
     const when = allDay ? format(startsAt, "MMMM d, yyyy") : format(startsAt, "MMMM d, yyyy 'at' h:mm a");
@@ -50,4 +66,11 @@ export async function deleteEventAction(id: string) {
   revalidatePath("/admin/calendar");
   revalidatePath("/calendar");
   revalidatePath("/");
+}
+
+export async function deleteEventAttachmentAction(id: string) {
+  await requireRole("ADMIN", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL");
+  await prisma.eventAttachment.delete({ where: { id } });
+  revalidatePath("/admin/calendar");
+  revalidatePath("/calendar");
 }
