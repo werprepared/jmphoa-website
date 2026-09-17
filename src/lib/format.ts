@@ -1,3 +1,23 @@
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
+import { format as formatDate } from "date-fns";
+
+/** The HOA's local timezone. Used so "today" means today for members, not for whatever timezone the server runs in. */
+export const HOA_TIME_ZONE = "America/Chicago";
+
+/**
+ * Midnight today, in the HOA's local timezone, expressed as a real UTC Date.
+ * Vercel's servers run in UTC, so a naive `startOfDay(new Date())` computes
+ * midnight of the server's UTC calendar day, not the HOA's local day - which
+ * can wrongly exclude "today's" events for several hours around the UTC
+ * date rollover. This resolves the correct offset (DST-aware) for the
+ * target date instead.
+ */
+export function startOfTodayLocal(): Date {
+  const zonedNow = toZonedTime(new Date(), HOA_TIME_ZONE);
+  const dateStr = formatDate(zonedNow, "yyyy-MM-dd");
+  return fromZonedTime(`${dateStr}T00:00:00`, HOA_TIME_ZONE);
+}
+
 /** Splits a free-text full name into a first-name portion and a last-name portion, using the final word as the last name. */
 export function splitName(fullName: string): { first: string; last: string } {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);

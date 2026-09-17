@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireApprovedUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { canManageMembers, canEditSiteContent, canManageCalendar, isAdmin } from "@/lib/roles";
-import { startOfDay } from "date-fns";
+import { startOfTodayLocal } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ export default async function AdminDashboard() {
   const [pendingUsers, pendingCommittees, upcomingEvents, documentCount] = await Promise.all([
     canManageMembers(user.roles) ? prisma.user.count({ where: { status: "PENDING" } }) : 0,
     isAdmin(user.roles) ? prisma.committeeMembership.count({ where: { approved: false } }) : 0,
-    prisma.calendarEvent.count({ where: { startsAt: { gte: startOfDay(new Date()) } } }),
+    prisma.calendarEvent.count({ where: { startsAt: { gte: startOfTodayLocal() } } }),
     prisma.document.count(),
   ]);
 

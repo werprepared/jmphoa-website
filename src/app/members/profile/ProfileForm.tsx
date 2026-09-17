@@ -23,11 +23,13 @@ function Field({
   name,
   defaultValue,
   placeholder,
+  required,
 }: {
   label: string;
   name: string;
   defaultValue?: string | null;
   placeholder?: string;
+  required?: boolean;
 }) {
   return (
     <div>
@@ -39,17 +41,31 @@ function Field({
         name={name}
         defaultValue={defaultValue || ""}
         placeholder={placeholder}
+        required={required}
         className="w-full border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
       />
     </div>
   );
 }
 
-export default function ProfileForm({ profile }: { profile: Profile }) {
+export default function ProfileForm({
+  profile,
+  firstName,
+  lastName,
+}: {
+  profile: Profile;
+  firstName: string;
+  lastName: string;
+}) {
   const [state, formAction, pending] = useActionState<ProfileState, FormData>(updateProfileAction, undefined);
 
   return (
     <form action={formAction} className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="First name" name="firstName" defaultValue={firstName} required />
+        <Field label="Last name" name="lastName" defaultValue={lastName} required />
+      </div>
+
       <p className="text-sm text-muted">
         Everything below is optional. Fields you leave blank simply won&apos;t appear in the Member
         Directory.

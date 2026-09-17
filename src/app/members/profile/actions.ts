@@ -32,6 +32,10 @@ export async function searchMembersAction(query: string): Promise<MemberMatch[]>
 export async function updateProfileAction(_prev: ProfileState, formData: FormData): Promise<ProfileState> {
   const user = await requireApprovedUser();
 
+  const firstName = str(formData.get("firstName"));
+  const lastName = str(formData.get("lastName"));
+  if (!firstName || !lastName) return { error: "Please enter both a first and last name." };
+
   let photoUrl: string | undefined;
   const photo = formData.get("photo");
   if (photo instanceof File && photo.size > 0) {
@@ -64,14 +68,18 @@ export async function updateProfileAction(_prev: ProfileState, formData: FormDat
     spouseId,
   };
 
-  await prisma.memberProfile.upsert({
-    where: { userId: user.id },
-    create: { userId: user.id, ...data, photoUrl },
-    update: { ...data, ...(photoUrl ? { photoUrl } : {}) },
-  });
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: user.id }, data: { name: `${firstName} ${lastName}` } }),
+    prisma.memberProfile.upsert({
+      where: { userId: user.id },
+      create: { userId: user.id, ...data, photoUrl },
+      update: { ...data, ...(photoUrl ? { photoUrl } : {}) },
+    }),
+  ]);
 
   revalidatePath("/members/profile");
   revalidatePath("/members/directory");
+  revalidatePath("/members");
   return { success: true };
 }
 
