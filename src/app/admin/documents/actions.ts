@@ -67,7 +67,7 @@ export async function uploadDocumentAction(_prev: UploadDocState, formData: Form
   revalidatePath("/members/documents");
 }
 
-export async function renameFolderAction(id: string, name: string) {
+export async function renameFolderAction(id: string, name: string, linkUrl?: string) {
   const folder = await prisma.folder.findUnique({ where: { id } });
   if (!folder) return;
   await assertCategoryAllowed(folder.category);
@@ -75,7 +75,7 @@ export async function renameFolderAction(id: string, name: string) {
   const trimmed = name.trim();
   if (!trimmed) return;
 
-  await prisma.folder.update({ where: { id }, data: { name: trimmed } });
+  await prisma.folder.update({ where: { id }, data: { name: trimmed, linkUrl: linkUrl?.trim() || null } });
   revalidatePath("/admin/documents");
   revalidatePath("/members/documents");
 }

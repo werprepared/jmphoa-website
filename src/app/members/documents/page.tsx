@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import { requireApprovedUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
@@ -25,6 +26,11 @@ export default async function DocumentsPage({
 }) {
   await requireApprovedUser();
   const { folder: folderId } = await searchParams;
+
+  if (folderId) {
+    const current = await prisma.folder.findUnique({ where: { id: folderId } });
+    if (current?.linkUrl) redirect(current.linkUrl);
+  }
 
   const [subfolders, documents, crumbs] = await Promise.all([
     prisma.folder.findMany({
@@ -62,7 +68,7 @@ export default async function DocumentsPage({
             {subfolders.map((f) => (
               <Link
                 key={f.id}
-                href={`/members/documents?folder=${f.id}`}
+                href={f.linkUrl ?? `/members/documents?folder=${f.id}`}
                 className="flex items-center gap-3 bg-card border border-border rounded-lg p-4 hover:border-primary hover:shadow-md transition-all"
               >
                 <span className="text-2xl" aria-hidden>📁</span>

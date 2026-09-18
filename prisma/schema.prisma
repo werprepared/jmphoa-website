@@ -46,6 +46,40 @@ enum ContactRecipient {
   SOCIAL
 }
 
+enum ArcRequestType {
+  ADDITION
+  PORCH
+  SHED
+  DECK_PATIO
+  ROOFING
+  GAZEBO_PLAYHOUSE
+  EXTERIOR_PAINT
+  FENCE
+  WALL_LANDSCAPING
+  MAILBOX
+  OTHER
+}
+
+enum ArcStatus {
+  PROCESSING
+  COMPLETED
+}
+
+enum ArcDecision {
+  APPROVED
+  CONDITIONAL_APPROVAL
+  DENIED
+}
+
+enum ArcAttachmentLabel {
+  SURVEY
+  PHOTOS
+  PLANS
+  LANDSCAPING
+  COMMITTEE_RESPONSE
+  OTHER
+}
+
 model User {
   id             String       @id @default(cuid())
   name           String
@@ -68,6 +102,9 @@ model User {
   surveyResponses     SurveyResponse[]
   surveysCreated      Survey[]
   spouseOfProfiles    MemberProfile[] @relation("SpouseLink")
+  arcRequests         ArcRequest[]    @relation("ArcRequester")
+  arcDecisions        ArcRequest[]    @relation("ArcDecidedBy")
+  arcAttachments      ArcAttachment[] @relation("ArcAttachmentUploader")
 }
 
 /** A single role grant. A user can hold several at once (e.g. Board Member + Membership Coordinator). */
@@ -109,6 +146,8 @@ model Folder {
   sortOrder Int      @default(0)
   documents Document[]
   createdAt DateTime @default(now())
+  /// When set, this folder is a pointer to a dedicated feature page (e.g. ARC Requests) rather than real storage.
+  linkUrl   String?
 }
 
 model Document {
@@ -254,4 +293,59 @@ model ContactMessage {
   fromEmail String
   message   String
   createdAt DateTime         @default(now())
+}
+
+model ArcRequest {
+  id             String   @id @default(cuid())
+  requesterId    String
+  requester      User     @relation("ArcRequester", fields: [requesterId], references: [id])
+  sequenceNumber Int      @default(1)
+
+  // I. Request Submitter Information (snapshot at submission time)
+  requesterName    String
+  requesterAddress String
+  requesterPhone   String?
+  requesterEmail   String
+
+  // II. Requested Change
+  requestType      ArcRequestType
+  requestTypeOther String?
+
+  // III. Specific Description of Improvement, Modification or Change
+  locationOnProperty String?
+  sizeDimensions     String?
+  color              String?
+  materials          String?
+  startDate          DateTime?
+  completionDate     DateTime?
+  contractorName     String?
+  contractorAddress  String?
+  contractorPhone    String?
+
+  // Workflow / Architectural Control Committee use only
+  status                ArcStatus    @default(PROCESSING)
+  decision              ArcDecision?
+  decisionReason        String?
+  dateReviewed          DateTime?
+  dateHomeownerNotified DateTime?
+  decidedById           String?
+  decidedBy             User?        @relation("ArcDecidedBy", fields: [decidedById], references: [id])
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  attachments ArcAttachment[]
+
+  @@unique([requesterId, sequenceNumber])
+}
+
+model ArcAttachment {
+  id           String             @id @default(cuid())
+  arcRequestId String
+  arcRequest   ArcRequest         @relation(fields: [arcRequestId], references: [id], onDelete: Cascade)
+  label        ArcAttachmentLabel
+  fileUrl      String
+  fileName     String
+  uploadedById String
+  uploadedBy   User               @relation("ArcAttachmentUploader", fields: [uploadedById], references: [id])
+  createdAt    DateTime           @default(now())
 }

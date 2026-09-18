@@ -24,6 +24,7 @@ const MEMBER_LINKS = [
   { href: "/members/community", label: "Community Wall" },
   { href: "/members/committees", label: "Join a Committee" },
   { href: "/members/documents", label: "HOA Documents" },
+  { href: "/members/arc-requests", label: "ARC Requests" },
   { href: "/members/survey", label: "Survey / Feedback" },
   { href: "/members/dues", label: "Pay Association Fees" },
 ];

@@ -43,6 +43,10 @@ export function canManageCalendar(roles?: Role[] | null) {
   );
 }
 
+export function canDecideArcRequests(roles?: Role[] | null) {
+  return !!roles && (roles.includes("ADMIN") || roles.includes("COMMITTEE_ARCH"));
+}
+
 /** Which document categories the union of a user's roles is allowed to upload/manage documents into. */
 export function uploadableCategoriesForRole(roles?: Role[] | null): DocCategory[] {
   if (!roles) return [];

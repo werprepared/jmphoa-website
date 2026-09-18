@@ -18,6 +18,15 @@ export function startOfTodayLocal(): Date {
   return fromZonedTime(`${dateStr}T00:00:00`, HOA_TIME_ZONE);
 }
 
+/**
+ * Formats a date-only value (no meaningful time-of-day, e.g. a `<input type="date">` submission)
+ * using its UTC calendar date, so display doesn't shift a day depending on the server's local
+ * timezone - the same class of bug `startOfTodayLocal` guards against for "today".
+ */
+export function formatDateOnly(date: Date, pattern = "MMM d, yyyy"): string {
+  return formatDate(toZonedTime(date, "UTC"), pattern);
+}
+
 /** Splits a free-text full name into a first-name portion and a last-name portion, using the final word as the last name. */
 export function splitName(fullName: string): { first: string; last: string } {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);

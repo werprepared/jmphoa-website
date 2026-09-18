@@ -74,7 +74,13 @@ export default async function AdminDocumentsPage({
       {subfolders.length > 0 && (
         <div className="grid gap-3 sm:grid-cols-2 mb-8">
           {subfolders.map((f) => (
-            <FolderRow key={f.id} id={f.id} name={f.name} href={`/admin/documents?category=${category}&folder=${f.id}`} />
+            <FolderRow
+              key={f.id}
+              id={f.id}
+              name={f.name}
+              href={`/admin/documents?category=${category}&folder=${f.id}`}
+              linkUrl={f.linkUrl}
+            />
           ))}
         </div>
       )}

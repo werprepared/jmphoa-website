@@ -8,10 +8,12 @@ export default function FolderRow({
   id,
   name,
   href,
+  linkUrl,
 }: {
   id: string;
   name: string;
   href: string;
+  linkUrl?: string | null;
 }) {
   const [editing, setEditing] = useState(false);
 
@@ -19,28 +21,36 @@ export default function FolderRow({
     return (
       <form
         action={async (formData: FormData) => {
-          await renameFolderAction(id, String(formData.get("name") || ""));
+          await renameFolderAction(id, String(formData.get("name") || ""), String(formData.get("linkUrl") || ""));
           setEditing(false);
         }}
-        className="flex items-center gap-2 bg-card border border-border rounded-lg p-4"
+        className="flex flex-col gap-2 bg-card border border-border rounded-lg p-4"
       >
+        <div className="flex items-center gap-2">
+          <input
+            name="name"
+            defaultValue={name}
+            autoFocus
+            required
+            className="flex-1 min-w-0 border border-border rounded px-2 py-1 text-sm"
+          />
+          <button type="submit" className="text-xs font-medium text-primary hover:underline shrink-0">
+            Save
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            className="text-xs text-muted hover:text-navy shrink-0"
+          >
+            Cancel
+          </button>
+        </div>
         <input
-          name="name"
-          defaultValue={name}
-          autoFocus
-          required
-          className="flex-1 min-w-0 border border-border rounded px-2 py-1 text-sm"
+          name="linkUrl"
+          defaultValue={linkUrl ?? ""}
+          placeholder="Link URL (advanced) - e.g. /members/arc-requests"
+          className="border border-border rounded px-2 py-1 text-xs text-muted"
         />
-        <button type="submit" className="text-xs font-medium text-primary hover:underline shrink-0">
-          Save
-        </button>
-        <button
-          type="button"
-          onClick={() => setEditing(false)}
-          className="text-xs text-muted hover:text-navy shrink-0"
-        >
-          Cancel
-        </button>
       </form>
     );
   }
