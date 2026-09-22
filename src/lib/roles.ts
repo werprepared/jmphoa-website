@@ -6,6 +6,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   BOARD_MEMBER: "Board Member",
   COMMITTEE_ARCH: "Architecture Committee",
   COMMITTEE_SOCIAL: "Social Committee",
+  COMMITTEE_LANDSCAPE: "Landscape Committee",
   MEMBER: "Member",
 };
 
@@ -15,6 +16,7 @@ export const ALL_ROLES: Role[] = [
   "BOARD_MEMBER",
   "COMMITTEE_ARCH",
   "COMMITTEE_SOCIAL",
+  "COMMITTEE_LANDSCAPE",
   "MEMBER",
 ];
 
@@ -39,7 +41,14 @@ export function canEditSiteContent(roles?: Role[] | null) {
 export function canManageCalendar(roles?: Role[] | null) {
   return (
     !!roles &&
-    roles.some((r) => r === "ADMIN" || r === "BOARD_MEMBER" || r === "COMMITTEE_ARCH" || r === "COMMITTEE_SOCIAL")
+    roles.some(
+      (r) =>
+        r === "ADMIN" ||
+        r === "BOARD_MEMBER" ||
+        r === "COMMITTEE_ARCH" ||
+        r === "COMMITTEE_SOCIAL" ||
+        r === "COMMITTEE_LANDSCAPE"
+    )
   );
 }
 
@@ -50,20 +59,22 @@ export function canDecideArcRequests(roles?: Role[] | null) {
 /** Which document categories the union of a user's roles is allowed to upload/manage documents into. */
 export function uploadableCategoriesForRole(roles?: Role[] | null): DocCategory[] {
   if (!roles) return [];
-  if (roles.includes("ADMIN")) return ["HOA_GENERAL", "BOARD", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL"];
+  if (roles.includes("ADMIN")) return ["HOA_GENERAL", "BOARD", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL", "COMMITTEE_LANDSCAPE"];
 
   const categories = new Set<DocCategory>();
   if (roles.includes("BOARD_MEMBER")) categories.add("BOARD");
   if (roles.includes("COMMITTEE_ARCH")) categories.add("COMMITTEE_ARCH");
   if (roles.includes("COMMITTEE_SOCIAL")) categories.add("COMMITTEE_SOCIAL");
+  if (roles.includes("COMMITTEE_LANDSCAPE")) categories.add("COMMITTEE_LANDSCAPE");
   return [...categories];
 }
 
-/** Which committees a user's roles give them standing in (a user can hold both). */
+/** Which committees a user's roles give them standing in (a user can hold several). */
 export function committeesForRoles(roles?: Role[] | null): Committee[] {
   const committees: Committee[] = [];
   if (roles?.includes("COMMITTEE_ARCH")) committees.push("ARCHITECTURE");
   if (roles?.includes("COMMITTEE_SOCIAL")) committees.push("SOCIAL");
+  if (roles?.includes("COMMITTEE_LANDSCAPE")) committees.push("LANDSCAPE");
   return committees;
 }
 
@@ -72,4 +83,5 @@ export const DOC_CATEGORY_LABELS: Record<DocCategory, string> = {
   BOARD: "Board Documents",
   COMMITTEE_ARCH: "Architecture Committee",
   COMMITTEE_SOCIAL: "Social Committee",
+  COMMITTEE_LANDSCAPE: "Landscape Committee",
 };

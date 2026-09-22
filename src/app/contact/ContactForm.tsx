@@ -2,8 +2,9 @@
 
 import { useActionState } from "react";
 import { sendContactMessage } from "./actions";
+import type { ContactRecipient } from "@prisma/client";
 
-export default function ContactForm() {
+export default function ContactForm({ defaultRecipient = "BOARD" }: { defaultRecipient?: ContactRecipient }) {
   const [state, formAction, pending] = useActionState(sendContactMessage, undefined);
 
   if (state?.success) {
@@ -25,11 +26,12 @@ export default function ContactForm() {
           id="recipient"
           name="recipient"
           className="w-full border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-          defaultValue="BOARD"
+          defaultValue={defaultRecipient}
         >
           <option value="BOARD">The Board</option>
           <option value="ARCHITECTURE">Architecture Committee</option>
           <option value="SOCIAL">Social Committee</option>
+          <option value="LANDSCAPE">Landscape Committee</option>
         </select>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">

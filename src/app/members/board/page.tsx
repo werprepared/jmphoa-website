@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import PageHeader from "@/components/PageHeader";
+import { requireApprovedUser } from "@/lib/authz";
 
 export const dynamic = "force-dynamic";
 
 export default async function BoardPage() {
+  await requireApprovedUser();
   const positions = await prisma.boardPosition.findMany({
     orderBy: { sortOrder: "asc" },
     include: { user: { include: { profile: true } } },

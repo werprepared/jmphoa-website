@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import PageHeader from "@/components/PageHeader";
 import { requireApprovedUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
+import { formatDateOnly } from "@/lib/format";
 import { arcFolderLabel } from "@/lib/arc";
 import ArcStatusBadge from "./ArcStatusBadge";
 
@@ -43,7 +44,12 @@ export default async function ArcRequestsPage() {
                   <span className="font-medium text-navy">{arcFolderLabel(r)}</span>
                   <ArcStatusBadge status={r.status} decision={r.decision} />
                 </div>
-                <span className="text-xs text-muted">Submitted {format(r.createdAt, "MMM d, yyyy")}</span>
+                <div className="text-xs text-muted space-y-0.5">
+                  <div>Submitted {format(r.createdAt, "MMM d, yyyy")}</div>
+                  {r.dateReviewed && <div>Reviewed {formatDateOnly(r.dateReviewed)}</div>}
+                  {r.dateHomeownerNotified && <div>Notice sent {formatDateOnly(r.dateHomeownerNotified)}</div>}
+                  {r.decidedAt && <div>Decided {formatDateOnly(r.decidedAt)}</div>}
+                </div>
               </Link>
             ))}
           </div>

@@ -13,6 +13,7 @@ enum Role {
   BOARD_MEMBER
   COMMITTEE_ARCH
   COMMITTEE_SOCIAL
+  COMMITTEE_LANDSCAPE
   MEMBER
 }
 
@@ -26,6 +27,7 @@ enum MemberStatus {
 enum Committee {
   ARCHITECTURE
   SOCIAL
+  LANDSCAPE
 }
 
 enum CommitteeRole {
@@ -38,12 +40,14 @@ enum DocCategory {
   BOARD
   COMMITTEE_ARCH
   COMMITTEE_SOCIAL
+  COMMITTEE_LANDSCAPE
 }
 
 enum ContactRecipient {
   BOARD
   ARCHITECTURE
   SOCIAL
+  LANDSCAPE
 }
 
 enum ArcRequestType {
@@ -231,15 +235,25 @@ model PageContent {
   updatedAt     DateTime @updatedAt
 }
 
+model CommunityCategory {
+  id        String          @id @default(cuid())
+  name      String
+  sortOrder Int             @default(0)
+  createdAt DateTime        @default(now())
+  posts     CommunityPost[]
+}
+
 model CommunityPost {
-  id        String            @id @default(cuid())
-  authorId  String
-  author    User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  subject   String            @default("")
-  body      String
-  imageUrl  String?
-  createdAt DateTime          @default(now())
-  comments  CommunityComment[]
+  id         String             @id @default(cuid())
+  authorId   String
+  author     User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  subject    String             @default("")
+  categoryId String?
+  category   CommunityCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  body       String
+  imageUrl   String?
+  createdAt  DateTime           @default(now())
+  comments   CommunityComment[]
 }
 
 model CommunityComment {
@@ -249,6 +263,8 @@ model CommunityComment {
   authorId  String
   author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   body      String
+  fileUrl   String?
+  fileName  String?
   createdAt DateTime      @default(now())
 }
 
@@ -328,6 +344,7 @@ model ArcRequest {
   decisionReason        String?
   dateReviewed          DateTime?
   dateHomeownerNotified DateTime?
+  decidedAt             DateTime?
   decidedById           String?
   decidedBy             User?        @relation("ArcDecidedBy", fields: [decidedById], references: [id])
 

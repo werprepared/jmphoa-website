@@ -4,7 +4,7 @@ import { authConfig } from "@/auth.config";
 
 const { auth } = NextAuth(authConfig);
 
-const UPLOAD_ROLES = ["BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL"];
+const UPLOAD_ROLES = ["BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL", "COMMITTEE_LANDSCAPE"];
 
 export default auth((req) => {
   const { nextUrl } = req;
@@ -13,7 +13,8 @@ export default auth((req) => {
 
   const isMembers = path.startsWith("/members");
   const isAdmin = path.startsWith("/admin");
-  if (!isMembers && !isAdmin) return NextResponse.next();
+  const isCalendar = path.startsWith("/calendar");
+  if (!isMembers && !isAdmin && !isCalendar) return NextResponse.next();
 
   if (!user) {
     const loginUrl = new URL("/login", nextUrl);
@@ -25,7 +26,7 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/pending-approval", nextUrl));
   }
 
-  if (isMembers) return NextResponse.next();
+  if (isMembers || isCalendar) return NextResponse.next();
 
   // Everything below is /admin/**
   const roles = user.roles ?? [];
@@ -56,5 +57,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/members/:path*", "/admin/:path*"],
+  matcher: ["/members/:path*", "/admin/:path*", "/calendar/:path*"],
 };

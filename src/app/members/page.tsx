@@ -6,7 +6,9 @@ import { roleLabels } from "@/lib/roles";
 const LINKS = [
   { href: "/members/directory", label: "Member Directory", desc: "Look up and connect with neighbors" },
   { href: "/members/community", label: "Community Wall", desc: "Share updates and news with the neighborhood" },
-  { href: "/members/committees", label: "Join a Committee", desc: "Get involved with Architecture or Social" },
+  { href: "/members/board", label: "Board Members", desc: "Who serves on the HOA Board" },
+  { href: "/members/committees", label: "Committee Members", desc: "View rosters and request to join Architecture, Social, or Landscape" },
+  { href: "/members/faq", label: "FAQ", desc: "Common questions about the HOA" },
   { href: "/members/documents", label: "HOA Documents", desc: "Bylaws, minutes, forms & more" },
   { href: "/members/survey", label: "Survey / Feedback", desc: "Tell us what you think" },
   { href: "/members/dues", label: "Pay Association Fees", desc: "Venmo or mail-in instructions" },

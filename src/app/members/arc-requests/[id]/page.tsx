@@ -13,7 +13,8 @@ import {
   ARC_REQUEST_TYPE_LABELS,
 } from "@/lib/arc";
 import ArcStatusBadge from "../ArcStatusBadge";
-import { addArcAttachmentAction, decideArcRequestAction } from "../actions";
+import { addArcAttachmentAction, decideArcRequestAction, deleteArcAttachmentAction, deleteArcRequestAction } from "../actions";
+import ConfirmDeleteButton from "@/components/ConfirmDeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -84,7 +85,7 @@ export default async function ArcRequestDetailPage({ params }: { params: Promise
               label="Date homeowner notified"
               value={request.dateHomeownerNotified ? formatDateOnly(request.dateHomeownerNotified) : null}
             />
-            <Field label="Decided by" value={request.decidedBy?.name} />
+            <Field label="Committee Decision Entered By" value={request.decidedBy?.name} />
           </div>
         )}
 
@@ -99,8 +100,13 @@ export default async function ArcRequestDetailPage({ params }: { params: Promise
                   <a href={a.fileUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate">
                     📎 {a.fileName}
                   </a>
-                  <span className="text-xs text-muted shrink-0">
+                  <span className="text-xs text-muted shrink-0 flex items-center gap-3">
                     {ARC_ATTACHMENT_LABELS[a.label]} · {a.uploadedBy.name} · {format(a.createdAt, "MMM d, yyyy")}
+                    {isCommittee && (
+                      <form action={async () => { "use server"; await deleteArcAttachmentAction(a.id); }}>
+                        <button className="text-muted hover:text-red-600">Delete</button>
+                      </form>
+                    )}
                   </span>
                 </li>
               ))}
@@ -169,6 +175,16 @@ export default async function ArcRequestDetailPage({ params }: { params: Promise
               Save Decision
             </button>
           </form>
+        )}
+
+        {isCommittee && (
+          <div className="flex justify-end">
+            <ConfirmDeleteButton
+              action={async () => { "use server"; await deleteArcRequestAction(request.id); }}
+              confirmMessage={`Delete this ARC request (${arcFolderLabel(request)}) and all of its documents? This cannot be undone.`}
+              label="Delete this ARC Request"
+            />
+          </div>
         )}
       </div>
     </div>

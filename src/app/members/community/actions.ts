@@ -3,16 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireApprovedUser } from "@/lib/authz";
-import { saveImage, UploadError } from "@/lib/upload";
+import { saveImage, saveDocument, UploadError } from "@/lib/upload";
 
 export type PostState = { error?: string } | undefined;
 
 export async function createPostAction(_prev: PostState, formData: FormData): Promise<PostState> {
   const user = await requireApprovedUser();
-  const subject = String(formData.get("subject") || "").trim();
+  const categoryId = String(formData.get("categoryId") || "").trim();
   const body = String(formData.get("body") || "").trim();
-  if (!subject) return { error: "Please add a subject." };
+  if (!categoryId) return { error: "Please choose a category." };
   if (!body) return { error: "Please write something to post." };
+
+  const category = await prisma.communityCategory.findUnique({ where: { id: categoryId } });
+  if (!category) return { error: "Please choose a valid category." };
 
   let imageUrl: string | undefined;
   const photo = formData.get("photo");
@@ -25,7 +28,7 @@ export async function createPostAction(_prev: PostState, formData: FormData): Pr
     }
   }
 
-  await prisma.communityPost.create({ data: { authorId: user.id, subject, body, imageUrl } });
+  await prisma.communityPost.create({ data: { authorId: user.id, categoryId, body, imageUrl } });
   revalidatePath("/members/community");
 }
 
@@ -33,7 +36,20 @@ export async function createCommentAction(postId: string, formData: FormData) {
   const user = await requireApprovedUser();
   const body = String(formData.get("body") || "").trim();
   if (!body) return;
-  await prisma.communityComment.create({ data: { postId, authorId: user.id, body } });
+
+  let fileUrl: string | undefined;
+  let fileName: string | undefined;
+  const file = formData.get("file");
+  if (file instanceof File && file.size > 0) {
+    try {
+      fileUrl = await saveDocument(file);
+      fileName = file.name;
+    } catch (err) {
+      console.error("Community comment attachment upload failed:", err);
+    }
+  }
+
+  await prisma.communityComment.create({ data: { postId, authorId: user.id, body, fileUrl, fileName } });
   revalidatePath("/members/community");
 }
 

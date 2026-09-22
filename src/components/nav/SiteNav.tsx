@@ -11,9 +11,6 @@ type NavUser = { name: string; roles: Role[] } | null;
 
 const ABOUT_LINKS = [
   { href: "/about", label: "Overview" },
-  { href: "/about/board", label: "Board Members" },
-  { href: "/about/committees", label: "Committee Members" },
-  { href: "/about/faq", label: "FAQ" },
   { href: "/about/sponsors", label: "Sponsors" },
 ];
 
@@ -22,9 +19,12 @@ const MEMBER_LINKS = [
   { href: "/members/directory", label: "Member Directory" },
   { href: "/members/profile", label: "My Profile" },
   { href: "/members/community", label: "Community Wall" },
-  { href: "/members/committees", label: "Join a Committee" },
+  { href: "/members/board", label: "Board Members" },
+  { href: "/members/committees", label: "Committee Members" },
+  { href: "/members/faq", label: "FAQ" },
   { href: "/members/documents", label: "HOA Documents" },
   { href: "/members/arc-requests", label: "ARC Requests" },
+  { href: "/calendar", label: "Calendar" },
   { href: "/members/survey", label: "Survey / Feedback" },
   { href: "/members/dues", label: "Pay Association Fees" },
 ];
@@ -83,7 +83,7 @@ export default function SiteNav({ user }: { user: NavUser }) {
   const isAdminish =
     user &&
     (user.roles ?? []).some((r) =>
-      ["ADMIN", "MEMBERSHIP_COORDINATOR", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL"].includes(r)
+      ["ADMIN", "MEMBERSHIP_COORDINATOR", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL", "COMMITTEE_LANDSCAPE"].includes(r)
     );
 
   return (
@@ -102,14 +102,6 @@ export default function SiteNav({ user }: { user: NavUser }) {
               }`}
             >
               Home
-            </Link>
-            <Link
-              href="/calendar"
-              className={`px-3 py-2 text-sm font-medium hover:bg-primary-dark rounded ${
-                pathname.startsWith("/calendar") ? "bg-primary-dark" : ""
-              }`}
-            >
-              Calendar
             </Link>
             <Dropdown label="About" href="/about" links={ABOUT_LINKS} active={pathname.startsWith("/about")} />
             {user && (
@@ -184,9 +176,6 @@ export default function SiteNav({ user }: { user: NavUser }) {
         <div className="md:hidden bg-primary-dark px-4 pb-4 space-y-1">
           <Link href="/" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>
             Home
-          </Link>
-          <Link href="/calendar" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>
-            Calendar
           </Link>
           {ABOUT_LINKS.map((l) => (
             <Link key={l.href} href={l.href} className="block py-2 pl-3 text-sm text-white/90" onClick={() => setMobileOpen(false)}>

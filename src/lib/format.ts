@@ -27,6 +27,17 @@ export function formatDateOnly(date: Date, pattern = "MMM d, yyyy"): string {
   return formatDate(toZonedTime(date, "UTC"), pattern);
 }
 
+/** Which local calendar day (in the HOA's timezone) a real timestamp instant falls on, as "yyyy-MM-dd". */
+export function localDateKey(date: Date): string {
+  return formatDate(toZonedTime(date, HOA_TIME_ZONE), "yyyy-MM-dd");
+}
+
+/** A specific local calendar day (in the HOA's timezone), expressed as a real UTC Date at local midnight. */
+export function zonedDateFromParts(year: number, month: number, day: number): Date {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return fromZonedTime(`${year}-${pad(month)}-${pad(day)}T00:00:00`, HOA_TIME_ZONE);
+}
+
 /** Splits a free-text full name into a first-name portion and a last-name portion, using the final word as the last name. */
 export function splitName(fullName: string): { first: string; last: string } {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);

@@ -9,10 +9,11 @@ const RECIPIENT_EMAILS: Record<ContactRecipient, string> = {
   BOARD: process.env.BOARD_EMAIL || "JMPHOAboard@gmail.com",
   ARCHITECTURE: process.env.ARCHITECTURE_EMAIL || "JMPHOArch@gmail.com",
   SOCIAL: process.env.SOCIAL_EMAIL || "JMPHOAsocial@gmail.com",
+  LANDSCAPE: process.env.LANDSCAPE_EMAIL || "JMPlandscape@gmail.com",
 };
 
 const schema = z.object({
-  recipient: z.enum(["BOARD", "ARCHITECTURE", "SOCIAL"]),
+  recipient: z.enum(["BOARD", "ARCHITECTURE", "SOCIAL", "LANDSCAPE"]),
   fromName: z.string().min(1, "Please enter your name."),
   fromEmail: z.string().email("Please enter a valid email."),
   message: z.string().min(5, "Please enter a message."),

@@ -14,7 +14,7 @@ export default function Footer() {
           <h4 className="text-white font-medium mb-2 text-sm uppercase tracking-wide">Quick Links</h4>
           <ul className="space-y-1 text-sm">
             <li><Link href="/calendar" className="hover:text-white">Calendar</Link></li>
-            <li><Link href="/about/faq" className="hover:text-white">FAQ</Link></li>
+            <li><Link href="/members/faq" className="hover:text-white">FAQ</Link></li>
             <li><Link href="/members/documents" className="hover:text-white">HOA Documents</Link></li>
             <li><Link href="/members/dues" className="hover:text-white">Pay Association Fees</Link></li>
             <li><Link href="/contact" className="hover:text-white">Contact Us</Link></li>
@@ -23,9 +23,10 @@ export default function Footer() {
         <div>
           <h4 className="text-white font-medium mb-2 text-sm uppercase tracking-wide">Contact</h4>
           <ul className="space-y-1 text-sm">
-            <li>Board: JMPHOAboard@gmail.com</li>
-            <li>Architecture Committee: JMPHOArch@gmail.com</li>
-            <li>Social Committee: JMPHOAsocial@gmail.com</li>
+            <li><Link href="/contact?to=BOARD" className="hover:text-white">Board: JMPHOAboard@gmail.com</Link></li>
+            <li><Link href="/contact?to=ARCHITECTURE" className="hover:text-white">Architecture Committee: JMPHOArch@gmail.com</Link></li>
+            <li><Link href="/contact?to=SOCIAL" className="hover:text-white">Social Committee: JMPHOAsocial@gmail.com</Link></li>
+            <li><Link href="/contact?to=LANDSCAPE" className="hover:text-white">Landscape Committee: JMPlandscape@gmail.com</Link></li>
           </ul>
         </div>
       </div>

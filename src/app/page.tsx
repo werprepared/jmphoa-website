@@ -84,15 +84,21 @@ export default async function HomePage() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {events.map((e) => (
-                <div key={e.id} className="bg-card border border-border rounded-lg p-4">
+                <Link
+                  key={e.id}
+                  href={`/calendar/${e.id}`}
+                  className="bg-card border border-border rounded-lg p-4 hover:border-primary hover:shadow-md transition-all"
+                >
                   <div className="text-primary font-semibold text-sm uppercase">
                     {format(e.startsAt, "MMM d")}
                   </div>
                   <div className="font-medium text-navy mt-1">{e.title}</div>
                   <div className="text-sm text-muted mt-1">
                     {e.allDay ? "All day" : format(e.startsAt, "h:mm a")}
+                    {e.location ? ` · ${e.location}` : ""}
                   </div>
-                </div>
+                  <div className="text-xs text-primary font-medium mt-2">View →</div>
+                </Link>
               ))}
             </div>
           )}

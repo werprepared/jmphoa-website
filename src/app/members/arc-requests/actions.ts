@@ -148,6 +148,22 @@ export async function addArcAttachmentAction(id: string, formData: FormData) {
   revalidatePath("/members/arc-requests");
 }
 
+export async function deleteArcAttachmentAction(id: string) {
+  await requireRole("ADMIN", "COMMITTEE_ARCH");
+  const attachment = await prisma.arcAttachment.findUnique({ where: { id } });
+  if (!attachment) return;
+  await prisma.arcAttachment.delete({ where: { id } });
+  revalidatePath(`/members/arc-requests/${attachment.arcRequestId}`);
+  revalidatePath("/members/arc-requests");
+}
+
+export async function deleteArcRequestAction(id: string) {
+  await requireRole("ADMIN", "COMMITTEE_ARCH");
+  await prisma.arcRequest.delete({ where: { id } });
+  revalidatePath("/members/arc-requests");
+  redirect("/members/arc-requests");
+}
+
 export async function decideArcRequestAction(id: string, formData: FormData) {
   const user = await requireRole("ADMIN", "COMMITTEE_ARCH");
   const request = await prisma.arcRequest.findUnique({ where: { id }, include: { requester: true } });
@@ -167,6 +183,7 @@ export async function decideArcRequestAction(id: string, formData: FormData) {
       decisionReason: str(formData, "decisionReason"),
       dateReviewed: dateReviewedRaw ? new Date(dateReviewedRaw) : startOfTodayLocal(),
       dateHomeownerNotified: dateNotifiedRaw ? new Date(dateNotifiedRaw) : startOfTodayLocal(),
+      decidedAt: startOfTodayLocal(),
       decidedById: user.id,
     },
   });

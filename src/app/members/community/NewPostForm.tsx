@@ -3,7 +3,9 @@
 import { useActionState, useRef } from "react";
 import { createPostAction, type PostState } from "./actions";
 
-export default function NewPostForm() {
+type Category = { id: string; name: string };
+
+export default function NewPostForm({ categories }: { categories: Category[] }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState<PostState, FormData>(async (prev, fd) => {
     const result = await createPostAction(prev, fd);
@@ -13,12 +15,21 @@ export default function NewPostForm() {
 
   return (
     <form ref={formRef} action={formAction} className="bg-card border border-border rounded-lg p-4 mb-8">
-      <input
-        name="subject"
+      <select
+        name="categoryId"
         required
-        placeholder="Subject"
+        defaultValue=""
         className="w-full border border-border rounded px-3 py-2 mb-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
-      />
+      >
+        <option value="" disabled>
+          Choose a category...
+        </option>
+        {categories.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
       <textarea
         name="body"
         required

@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 const COMMITTEES = [
   { key: "ARCHITECTURE" as const, label: "Architecture Committee" },
   { key: "SOCIAL" as const, label: "Social Committee" },
+  { key: "LANDSCAPE" as const, label: "Landscape Committee" },
 ];
 
 export default async function AdminCommitteesPage() {

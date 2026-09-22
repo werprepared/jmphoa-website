@@ -9,6 +9,7 @@ import { sendMail } from "@/lib/mailer";
 const COMMITTEE_ROLES: { role: Role; committee: Committee }[] = [
   { role: "COMMITTEE_ARCH", committee: "ARCHITECTURE" },
   { role: "COMMITTEE_SOCIAL", committee: "SOCIAL" },
+  { role: "COMMITTEE_LANDSCAPE", committee: "LANDSCAPE" },
 ];
 
 export async function approveUserAction(userId: string) {
@@ -77,5 +78,5 @@ export async function setUserRolesAction(userId: string, roles: Role[]) {
 
   revalidatePath("/admin/users");
   revalidatePath("/admin/committees");
-  revalidatePath("/about/committees");
+  revalidatePath("/members/committees");
 }

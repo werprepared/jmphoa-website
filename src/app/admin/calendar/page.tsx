@@ -16,7 +16,7 @@ export default async function AdminCalendarPage({
 }: {
   searchParams: Promise<{ edit?: string }>;
 }) {
-  await requireRole("ADMIN", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL");
+  await requireRole("ADMIN", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL", "COMMITTEE_LANDSCAPE");
   const { edit } = await searchParams;
 
   const [events, editing, members] = await Promise.all([

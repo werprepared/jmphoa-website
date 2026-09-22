@@ -3,24 +3,47 @@
 import { useState } from "react";
 import { createCommentAction, deletePostAction } from "./actions";
 
-type Comment = { id: string; body: string; author: { name: string } };
+type Comment = { id: string; body: string; fileUrl: string | null; fileName: string | null; author: { name: string } };
 
 type Post = {
   id: string;
-  subject: string;
   body: string;
   imageUrl: string | null;
   comments: Comment[];
 };
 
+function Avatar({ name, photoUrl }: { name: string; photoUrl: string | null }) {
+  if (photoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={photoUrl} alt="" className="w-10 h-10 rounded-full object-cover border border-border shrink-0" />
+    );
+  }
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const initials = [parts[0], parts[parts.length - 1]]
+    .filter(Boolean)
+    .map((p) => p![0])
+    .join("")
+    .toUpperCase();
+  return (
+    <div className="w-10 h-10 rounded-full bg-primary-light text-primary text-sm font-semibold flex items-center justify-center shrink-0">
+      {initials}
+    </div>
+  );
+}
+
 export default function PostCard({
   post,
   authorName,
+  authorPhotoUrl,
+  categoryName,
   timeAgo,
   canDelete,
 }: {
   post: Post;
   authorName: string;
+  authorPhotoUrl: string | null;
+  categoryName: string;
   timeAgo: string;
   canDelete: boolean;
 }) {
@@ -30,9 +53,12 @@ export default function PostCard({
   return (
     <div className="bg-card border border-border rounded-lg p-4">
       <div className="flex items-center justify-between">
-        <div>
-          <span className="font-medium text-navy">{authorName}</span>{" "}
-          <span className="text-xs text-muted">{timeAgo}</span>
+        <div className="flex items-center gap-3">
+          <Avatar name={authorName} photoUrl={authorPhotoUrl} />
+          <div>
+            <span className="font-medium text-navy">{authorName}</span>{" "}
+            <span className="text-xs text-muted">{timeAgo}</span>
+          </div>
         </div>
         {canDelete && (
           <form action={async () => { await deletePostAction(post.id); }}>
@@ -41,7 +67,9 @@ export default function PostCard({
         )}
       </div>
 
-      {post.subject && <h3 className="font-semibold text-navy mt-1">{post.subject}</h3>}
+      <span className="inline-block mt-2 text-xs font-medium text-primary bg-primary-light px-2 py-0.5 rounded-full">
+        {categoryName}
+      </span>
       <p className="mt-2 whitespace-pre-wrap">{post.body}</p>
       {post.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -68,17 +96,23 @@ export default function PostCard({
                   <div key={c.id} className="text-sm">
                     <span className="font-medium text-navy">{c.author.name}: </span>
                     <span>{c.body}</span>
+                    {c.fileUrl && (
+                      <a href={c.fileUrl} target="_blank" rel="noreferrer" className="ml-2 text-primary hover:underline">
+                        📎 {c.fileName}
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>
             )}
 
-            <form action={createCommentAction.bind(null, post.id)} className="mt-3 flex gap-2">
+            <form action={createCommentAction.bind(null, post.id)} className="mt-3 flex flex-wrap gap-2 items-center">
               <input
                 name="body"
                 placeholder="Write a comment..."
                 className="flex-1 border border-border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
+              <input type="file" name="file" className="text-xs" />
               <button className="text-sm text-primary font-medium">Reply</button>
             </form>
           </>

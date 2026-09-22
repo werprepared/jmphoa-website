@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import PageHeader from "@/components/PageHeader";
+import { requireApprovedUser } from "@/lib/authz";
 
 export const dynamic = "force-dynamic";
 
 export default async function FaqPage() {
+  await requireApprovedUser();
   const faqs = await prisma.faqItem.findMany({ orderBy: { sortOrder: "asc" } });
 
   return (

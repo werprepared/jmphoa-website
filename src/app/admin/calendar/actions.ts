@@ -22,7 +22,7 @@ async function saveEventAttachments(eventId: string, formData: FormData) {
 }
 
 export async function saveEventAction(formData: FormData) {
-  const user = await requireRole("ADMIN", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL");
+  const user = await requireRole("ADMIN", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL", "COMMITTEE_LANDSCAPE");
 
   const id = String(formData.get("id") || "");
   const title = String(formData.get("title") || "").trim();
@@ -61,7 +61,7 @@ export async function saveEventAction(formData: FormData) {
 }
 
 export async function deleteEventAction(id: string) {
-  await requireRole("ADMIN", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL");
+  await requireRole("ADMIN", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL", "COMMITTEE_LANDSCAPE");
   await prisma.calendarEvent.delete({ where: { id } });
   revalidatePath("/admin/calendar");
   revalidatePath("/calendar");
@@ -69,7 +69,7 @@ export async function deleteEventAction(id: string) {
 }
 
 export async function deleteEventAttachmentAction(id: string) {
-  await requireRole("ADMIN", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL");
+  await requireRole("ADMIN", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL", "COMMITTEE_LANDSCAPE");
   await prisma.eventAttachment.delete({ where: { id } });
   revalidatePath("/admin/calendar");
   revalidatePath("/calendar");

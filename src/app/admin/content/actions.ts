@@ -53,14 +53,14 @@ export async function addFaqAction(question: string, answer: string) {
   const count = await prisma.faqItem.count();
   await prisma.faqItem.create({ data: { question, answer, sortOrder: count } });
   revalidatePath("/admin/content/faq");
-  revalidatePath("/about/faq");
+  revalidatePath("/members/faq");
 }
 
 export async function deleteFaqAction(id: string) {
   await requireRole("ADMIN");
   await prisma.faqItem.delete({ where: { id } });
   revalidatePath("/admin/content/faq");
-  revalidatePath("/about/faq");
+  revalidatePath("/members/faq");
 }
 
 // --- Sponsors ---
@@ -102,25 +102,69 @@ export async function deleteSponsorAction(id: string) {
   revalidatePath("/");
 }
 
+// --- Community Categories ---
+export async function addCommunityCategoryAction(name: string) {
+  await requireRole("ADMIN");
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  const count = await prisma.communityCategory.count();
+  await prisma.communityCategory.create({ data: { name: trimmed, sortOrder: count } });
+  revalidatePath("/admin/content/community-categories");
+  revalidatePath("/members/community");
+}
+
+export async function renameCommunityCategoryAction(id: string, name: string) {
+  await requireRole("ADMIN");
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  await prisma.communityCategory.update({ where: { id }, data: { name: trimmed } });
+  revalidatePath("/admin/content/community-categories");
+  revalidatePath("/members/community");
+}
+
+export async function deleteCommunityCategoryAction(id: string) {
+  await requireRole("ADMIN");
+  await prisma.communityCategory.delete({ where: { id } });
+  revalidatePath("/admin/content/community-categories");
+  revalidatePath("/members/community");
+}
+
+export async function moveCommunityCategoryAction(id: string, direction: "up" | "down") {
+  await requireRole("ADMIN");
+  const categories = await prisma.communityCategory.findMany({ orderBy: { sortOrder: "asc" } });
+  const idx = categories.findIndex((c) => c.id === id);
+  const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+  if (idx === -1 || swapIdx < 0 || swapIdx >= categories.length) return;
+
+  const a = categories[idx];
+  const b = categories[swapIdx];
+  await prisma.$transaction([
+    prisma.communityCategory.update({ where: { id: a.id }, data: { sortOrder: b.sortOrder } }),
+    prisma.communityCategory.update({ where: { id: b.id }, data: { sortOrder: a.sortOrder } }),
+  ]);
+  revalidatePath("/admin/content/community-categories");
+  revalidatePath("/members/community");
+}
+
 // --- Board positions ---
 export async function addBoardPositionAction(title: string) {
   await requireRole("ADMIN");
   const count = await prisma.boardPosition.count();
   await prisma.boardPosition.create({ data: { title, sortOrder: count } });
   revalidatePath("/admin/content/board");
-  revalidatePath("/about/board");
+  revalidatePath("/members/board");
 }
 
 export async function assignBoardPositionAction(id: string, userId: string) {
   await requireRole("ADMIN");
   await prisma.boardPosition.update({ where: { id }, data: { userId: userId || null } });
   revalidatePath("/admin/content/board");
-  revalidatePath("/about/board");
+  revalidatePath("/members/board");
 }
 
 export async function deleteBoardPositionAction(id: string) {
   await requireRole("ADMIN");
   await prisma.boardPosition.delete({ where: { id } });
   revalidatePath("/admin/content/board");
-  revalidatePath("/about/board");
+  revalidatePath("/members/board");
 }
