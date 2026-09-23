@@ -85,7 +85,9 @@ export default async function DocumentsPage({
             {documents.map((d) => (
               <li key={d.id} className="flex items-center justify-between px-4 py-3 bg-card">
                 <div>
-                  <div className="font-medium text-navy">{d.title}</div>
+                  <a href={d.fileUrl} target="_blank" rel="noreferrer" className="font-medium text-navy hover:underline">
+                    {d.title}
+                  </a>
                   <div className="text-xs text-muted">
                     Uploaded by {d.uploadedBy.name} on {format(d.createdAt, "MMM d, yyyy")}
                   </div>
