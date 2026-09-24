@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import PageHeader from "@/components/PageHeader";
 import { requireApprovedUser } from "@/lib/authz";
 import { localDateKey } from "@/lib/format";
+import RichText from "@/components/RichText";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ ev
           {event.description && (
             <div>
               <div className="text-xs uppercase tracking-wide text-muted">Description</div>
-              <p className="text-navy whitespace-pre-wrap">{event.description}</p>
+              <RichText html={event.description} className="text-navy" />
             </div>
           )}
         </div>

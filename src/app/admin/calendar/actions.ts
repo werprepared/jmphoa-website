@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/authz";
 import { notifyMembers, readNotifyChoice, SITE_URL } from "@/lib/notify";
 import { saveDocument } from "@/lib/upload";
+import { richTextIsEmpty } from "@/lib/richtext";
 
 async function saveEventAttachments(eventId: string, formData: FormData) {
   const files = formData.getAll("attachments");
@@ -26,7 +27,8 @@ export async function saveEventAction(formData: FormData) {
 
   const id = String(formData.get("id") || "");
   const title = String(formData.get("title") || "").trim();
-  const description = String(formData.get("description") || "").trim() || null;
+  const descriptionRaw = String(formData.get("description") || "").trim();
+  const description = richTextIsEmpty(descriptionRaw) ? null : descriptionRaw;
   const location = String(formData.get("location") || "").trim() || null;
   const startsAt = new Date(String(formData.get("startsAt")));
   const endsAtRaw = String(formData.get("endsAt") || "");

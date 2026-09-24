@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireApprovedUser } from "@/lib/authz";
 import { saveImage, saveDocument, UploadError } from "@/lib/upload";
+import { richTextIsEmpty } from "@/lib/richtext";
 
 export type PostState = { error?: string } | undefined;
 
@@ -12,7 +13,7 @@ export async function createPostAction(_prev: PostState, formData: FormData): Pr
   const categoryId = String(formData.get("categoryId") || "").trim();
   const body = String(formData.get("body") || "").trim();
   if (!categoryId) return { error: "Please choose a category." };
-  if (!body) return { error: "Please write something to post." };
+  if (richTextIsEmpty(body)) return { error: "Please write something to post." };
 
   const category = await prisma.communityCategory.findUnique({ where: { id: categoryId } });
   if (!category) return { error: "Please choose a valid category." };

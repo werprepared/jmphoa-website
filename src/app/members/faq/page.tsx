@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import PageHeader from "@/components/PageHeader";
 import { requireApprovedUser } from "@/lib/authz";
+import RichText from "@/components/RichText";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export default async function FaqPage() {
                   {f.question}
                   <span className="text-primary group-open:rotate-180 transition-transform">⌄</span>
                 </summary>
-                <p className="text-muted mt-2 whitespace-pre-wrap">{f.answer}</p>
+                <RichText html={f.answer} className="text-muted mt-2" />
               </details>
             ))}
           </div>

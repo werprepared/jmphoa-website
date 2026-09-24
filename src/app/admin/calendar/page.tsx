@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { saveEventAction, deleteEventAction, deleteEventAttachmentAction } from "./actions";
 import NotifyMembersField from "@/components/NotifyMembersField";
+import RichTextEditor from "@/components/RichTextEditor";
 import { format } from "date-fns";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +34,10 @@ export default async function AdminCalendarPage({
         <h2 className="font-semibold text-navy text-sm">{editing ? "Edit event" : "New event"}</h2>
         <input type="hidden" name="id" value={editing?.id || ""} />
         <input name="title" placeholder="Title" required defaultValue={editing?.title || ""} className="w-full border border-border rounded px-3 py-2 text-sm" />
-        <textarea name="description" placeholder="Description (optional)" defaultValue={editing?.description || ""} rows={2} className="w-full border border-border rounded px-3 py-2 text-sm" />
+        <div>
+          <label className="block text-xs text-muted mb-1">Description (optional)</label>
+          <RichTextEditor key={editing?.id || "new"} name="description" defaultValue={editing?.description} />
+        </div>
         <input name="location" placeholder="Location (optional)" defaultValue={editing?.location || ""} className="w-full border border-border rounded px-3 py-2 text-sm" />
         <div className="grid gap-3 sm:grid-cols-2">
           <div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createCommentAction, deletePostAction } from "./actions";
+import RichText from "@/components/RichText";
 
 type Comment = { id: string; body: string; fileUrl: string | null; fileName: string | null; author: { name: string } };
 
@@ -70,7 +71,7 @@ export default function PostCard({
       <span className="inline-block mt-2 text-xs font-medium text-primary bg-primary-light px-2 py-0.5 rounded-full">
         {categoryName}
       </span>
-      <p className="mt-2 whitespace-pre-wrap">{post.body}</p>
+      <RichText html={post.body} className="mt-2" />
       {post.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={post.imageUrl} alt="" className="mt-3 rounded-lg max-h-96 object-cover" />
