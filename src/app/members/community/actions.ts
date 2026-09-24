@@ -33,6 +33,26 @@ export async function createPostAction(_prev: PostState, formData: FormData): Pr
   revalidatePath("/members/community");
 }
 
+export async function updatePostAction(postId: string, _prev: PostState, formData: FormData): Promise<PostState> {
+  const user = await requireApprovedUser();
+  const post = await prisma.communityPost.findUnique({ where: { id: postId } });
+  if (!post) return { error: "Post not found." };
+  if (post.authorId !== user.id && !user.roles.includes("ADMIN")) {
+    return { error: "You don't have permission to edit this post." };
+  }
+
+  const categoryId = String(formData.get("categoryId") || "").trim();
+  const body = String(formData.get("body") || "").trim();
+  if (!categoryId) return { error: "Please choose a category." };
+  if (richTextIsEmpty(body)) return { error: "Please write something to post." };
+
+  const category = await prisma.communityCategory.findUnique({ where: { id: categoryId } });
+  if (!category) return { error: "Please choose a valid category." };
+
+  await prisma.communityPost.update({ where: { id: postId }, data: { categoryId, body } });
+  revalidatePath("/members/community");
+}
+
 export async function createCommentAction(postId: string, formData: FormData) {
   const user = await requireApprovedUser();
   const body = String(formData.get("body") || "").trim();

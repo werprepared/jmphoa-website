@@ -1,9 +1,9 @@
 import { requireRole } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
-import { addFaqAction, deleteFaqAction } from "../actions";
+import { addFaqAction } from "../actions";
 import RichTextEditor from "@/components/RichTextEditor";
-import RichText from "@/components/RichText";
 import { richTextIsEmpty } from "@/lib/richtext";
+import FaqRow from "./FaqRow";
 
 export const dynamic = "force-dynamic";
 
@@ -34,15 +34,7 @@ export default async function FaqAdminPage() {
 
       <div className="space-y-2">
         {faqs.map((f) => (
-          <div key={f.id} className="bg-card border border-border rounded-lg p-4 flex justify-between gap-4">
-            <div>
-              <div className="font-medium text-navy">{f.question}</div>
-              <RichText html={f.answer} className="text-sm text-muted mt-1" />
-            </div>
-            <form action={async () => { "use server"; await deleteFaqAction(f.id); }}>
-              <button className="text-xs text-muted hover:text-red-600 shrink-0">Delete</button>
-            </form>
-          </div>
+          <FaqRow key={f.id} id={f.id} question={f.question} answer={f.answer} />
         ))}
       </div>
     </div>

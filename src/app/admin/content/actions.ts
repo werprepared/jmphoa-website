@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/authz";
 import { saveImage, UploadError } from "@/lib/upload";
+import { richTextIsEmpty } from "@/lib/richtext";
 
 function str(v: FormDataEntryValue | null) {
   const s = (v ?? "").toString();
@@ -52,6 +53,15 @@ export async function addFaqAction(question: string, answer: string) {
   await requireRole("ADMIN");
   const count = await prisma.faqItem.count();
   await prisma.faqItem.create({ data: { question, answer, sortOrder: count } });
+  revalidatePath("/admin/content/faq");
+  revalidatePath("/members/faq");
+}
+
+export async function updateFaqAction(id: string, question: string, answer: string) {
+  await requireRole("ADMIN");
+  const trimmedQuestion = question.trim();
+  if (!trimmedQuestion || richTextIsEmpty(answer)) return;
+  await prisma.faqItem.update({ where: { id }, data: { question: trimmedQuestion, answer } });
   revalidatePath("/admin/content/faq");
   revalidatePath("/members/faq");
 }

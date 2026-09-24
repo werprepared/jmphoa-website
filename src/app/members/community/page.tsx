@@ -62,16 +62,17 @@ export default async function CommunityPage({
 
         <div className="space-y-6">
           {posts.map((post) => {
-            const canDelete = post.authorId === user.id || user.roles.includes("ADMIN");
+            const canManage = post.authorId === user.id || user.roles.includes("ADMIN");
             return (
               <PostCard
                 key={post.id}
                 post={post}
+                categories={categories}
                 authorName={post.author.name}
                 authorPhotoUrl={post.author.profile?.photoUrl ?? null}
                 categoryName={post.category?.name ?? "Uncategorized"}
                 timeAgo={formatDistanceToNow(post.createdAt, { addSuffix: true })}
-                canDelete={canDelete}
+                canManage={canManage}
               />
             );
           })}

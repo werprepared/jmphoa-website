@@ -1,15 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { createCommentAction, deletePostAction } from "./actions";
+import { useActionState, useState } from "react";
+import { createCommentAction, deletePostAction, updatePostAction, type PostState } from "./actions";
 import RichText from "@/components/RichText";
+import RichTextEditor from "@/components/RichTextEditor";
 
 type Comment = { id: string; body: string; fileUrl: string | null; fileName: string | null; author: { name: string } };
+
+type Category = { id: string; name: string };
 
 type Post = {
   id: string;
   body: string;
   imageUrl: string | null;
+  categoryId: string | null;
   comments: Comment[];
 };
 
@@ -35,21 +39,30 @@ function Avatar({ name, photoUrl }: { name: string; photoUrl: string | null }) {
 
 export default function PostCard({
   post,
+  categories,
   authorName,
   authorPhotoUrl,
   categoryName,
   timeAgo,
-  canDelete,
+  canManage,
 }: {
   post: Post;
+  categories: Category[];
   authorName: string;
   authorPhotoUrl: string | null;
   categoryName: string;
   timeAgo: string;
-  canDelete: boolean;
+  canManage: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState(false);
   const replyCount = post.comments.length;
+
+  const [state, formAction, pending] = useActionState<PostState, FormData>(async (prev, fd) => {
+    const result = await updatePostAction(post.id, prev, fd);
+    if (!result?.error) setEditing(false);
+    return result;
+  }, undefined);
 
   return (
     <div className="bg-card border border-border rounded-lg p-4">
@@ -61,20 +74,65 @@ export default function PostCard({
             <span className="text-xs text-muted">{timeAgo}</span>
           </div>
         </div>
-        {canDelete && (
-          <form action={async () => { await deletePostAction(post.id); }}>
-            <button className="text-xs text-muted hover:text-red-600">Delete</button>
-          </form>
+        {canManage && !editing && (
+          <div className="flex items-center gap-3">
+            <button onClick={() => setEditing(true)} className="text-xs text-muted hover:text-primary">
+              Edit
+            </button>
+            <form action={async () => { await deletePostAction(post.id); }}>
+              <button className="text-xs text-muted hover:text-red-600">Delete</button>
+            </form>
+          </div>
         )}
       </div>
 
-      <span className="inline-block mt-2 text-xs font-medium text-primary bg-primary-light px-2 py-0.5 rounded-full">
-        {categoryName}
-      </span>
-      <RichText html={post.body} className="mt-2" />
-      {post.imageUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={post.imageUrl} alt="" className="mt-3 rounded-lg max-h-96 object-cover" />
+      {editing ? (
+        <form action={formAction} className="mt-2 space-y-2">
+          <select
+            name="categoryId"
+            required
+            defaultValue={post.categoryId ?? ""}
+            className="w-full border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="" disabled>
+              Choose a category...
+            </option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <RichTextEditor name="body" defaultValue={post.body} />
+          {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={pending}
+              className="bg-primary hover:bg-primary-dark text-white text-sm font-medium px-4 py-2 rounded transition-colors disabled:opacity-60"
+            >
+              {pending ? "Saving..." : "Save"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="text-sm text-muted hover:text-navy px-4 py-2"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <span className="inline-block mt-2 text-xs font-medium text-primary bg-primary-light px-2 py-0.5 rounded-full">
+            {categoryName}
+          </span>
+          <RichText html={post.body} className="mt-2" />
+          {post.imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={post.imageUrl} alt="" className="mt-3 rounded-lg max-h-96 object-cover" />
+          )}
+        </>
       )}
 
       <div className="mt-3 border-t border-border pt-3">
