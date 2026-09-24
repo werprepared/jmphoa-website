@@ -12,6 +12,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/documents", label: "Documents", show: canManageCalendar(user.roles) },
     { href: "/admin/calendar", label: "Calendar", show: canManageCalendar(user.roles) },
     { href: "/admin/committees", label: "Committees", show: isAdmin(user.roles) },
+    { href: "/admin/usage", label: "System Usage", show: isAdmin(user.roles) },
   ].filter((l) => l.show);
 
   return (

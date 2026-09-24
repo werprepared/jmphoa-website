@@ -109,6 +109,7 @@ model User {
   arcRequests         ArcRequest[]    @relation("ArcRequester")
   arcDecisions        ArcRequest[]    @relation("ArcDecidedBy")
   arcAttachments      ArcAttachment[] @relation("ArcAttachmentUploader")
+  pageViews           PageView[]
 }
 
 /** A single role grant. A user can hold several at once (e.g. Board Member + Membership Coordinator). */
@@ -365,4 +366,15 @@ model ArcAttachment {
   uploadedById String
   uploadedBy   User               @relation("ArcAttachmentUploader", fields: [uploadedById], references: [id])
   createdAt    DateTime           @default(now())
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  path      String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
 }
