@@ -25,15 +25,21 @@ function getTransporter() {
 export async function sendMail(opts: { to: string; subject: string; text: string; replyTo?: string }) {
   const t = getTransporter();
   if (!t) {
-    console.log(`[mailer] SMTP not configured - would send to ${opts.to}: ${opts.subject}\n${opts.text}`);
+    console.error(`[mailer] SMTP not configured - would send to ${opts.to}: ${opts.subject}\n${opts.text}`);
     return { sent: false as const };
   }
-  await t.sendMail({
-    from: process.env.SMTP_FROM || "JMPHOA Website <no-reply@jmphoa.org>",
-    to: opts.to,
-    subject: opts.subject,
-    text: opts.text,
-    replyTo: opts.replyTo,
-  });
-  return { sent: true as const };
+  try {
+    const info = await t.sendMail({
+      from: process.env.SMTP_FROM || "JMPHOA Website <no-reply@jmphoa.org>",
+      to: opts.to,
+      subject: opts.subject,
+      text: opts.text,
+      replyTo: opts.replyTo,
+    });
+    console.error(`[mailer] SMTP send succeeded to ${opts.to}: messageId=${info.messageId} response=${info.response}`);
+    return { sent: true as const };
+  } catch (err) {
+    console.error(`[mailer] SMTP send FAILED to ${opts.to}:`, err);
+    return { sent: false as const };
+  }
 }
