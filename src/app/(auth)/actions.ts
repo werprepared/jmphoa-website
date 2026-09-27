@@ -72,7 +72,7 @@ export async function registerAction(_prev: RegisterState, formData: FormData): 
     },
   });
 
-  const boardEmail = process.env.BOARD_EMAIL || "JMPHOAboard@gmail.com";
+  const boardEmail = process.env.BOARD_EMAIL || "board@jmphoa.org";
   await sendMail({
     to: boardEmail,
     subject: "New JMPHOA member registration pending approval",

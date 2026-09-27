@@ -6,10 +6,10 @@ import { sendMail } from "@/lib/mailer";
 import type { ContactRecipient } from "@prisma/client";
 
 const RECIPIENT_EMAILS: Record<ContactRecipient, string> = {
-  BOARD: process.env.BOARD_EMAIL || "JMPHOAboard@gmail.com",
-  ARCHITECTURE: process.env.ARCHITECTURE_EMAIL || "JMPHOArch@gmail.com",
-  SOCIAL: process.env.SOCIAL_EMAIL || "JMPHOAsocial@gmail.com",
-  LANDSCAPE: process.env.LANDSCAPE_EMAIL || "JMPlandscape@gmail.com",
+  BOARD: process.env.BOARD_EMAIL || "board@jmphoa.org",
+  ARCHITECTURE: process.env.ARCHITECTURE_EMAIL || "arch@jmphoa.org",
+  SOCIAL: process.env.SOCIAL_EMAIL || "social@jmphoa.org",
+  LANDSCAPE: process.env.LANDSCAPE_EMAIL || "landscape@jmphoa.org",
 };
 
 const schema = z.object({

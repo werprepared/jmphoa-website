@@ -23,10 +23,10 @@ export default function Footer() {
         <div>
           <h4 className="text-white font-medium mb-2 text-sm uppercase tracking-wide">Contact</h4>
           <ul className="space-y-1 text-sm">
-            <li><Link href="/contact?to=BOARD" className="hover:text-white">Board: JMPHOAboard@gmail.com</Link></li>
-            <li><Link href="/contact?to=ARCHITECTURE" className="hover:text-white">Architecture Committee: JMPHOArch@gmail.com</Link></li>
-            <li><Link href="/contact?to=SOCIAL" className="hover:text-white">Social Committee: JMPHOAsocial@gmail.com</Link></li>
-            <li><Link href="/contact?to=LANDSCAPE" className="hover:text-white">Landscape Committee: JMPlandscape@gmail.com</Link></li>
+            <li><Link href="/contact?to=BOARD" className="hover:text-white">Board: board@jmphoa.org</Link></li>
+            <li><Link href="/contact?to=ARCHITECTURE" className="hover:text-white">Architecture Committee: arch@jmphoa.org</Link></li>
+            <li><Link href="/contact?to=SOCIAL" className="hover:text-white">Social Committee: social@jmphoa.org</Link></li>
+            <li><Link href="/contact?to=LANDSCAPE" className="hover:text-white">Landscape Committee: landscape@jmphoa.org</Link></li>
           </ul>
         </div>
       </div>
