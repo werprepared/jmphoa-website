@@ -10,6 +10,7 @@ export default async function ContentAdminIndex() {
     { href: "/admin/content/board", label: "Board Members", desc: "Positions and who holds them" },
     { href: "/admin/content/faq", label: "FAQ", desc: "Frequently asked questions" },
     { href: "/admin/content/sponsors", label: "Sponsors", desc: "Sponsor logos and links" },
+    { href: "/admin/content/dues", label: "Dues Settings", desc: "Dues year, amount, due date and late fee" },
     { href: "/admin/content/community-categories", label: "Community Categories", desc: "Manage the Community Wall's category list" },
   ];
 

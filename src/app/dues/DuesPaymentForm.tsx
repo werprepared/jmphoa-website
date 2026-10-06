@@ -12,7 +12,24 @@ type Defaults = { name: string; email: string; address: string };
 
 const money = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 
-export default function DuesPaymentForm({ amountCents, defaults }: { amountCents: number; defaults: Defaults }) {
+type Limits = { minCents: number; maxCents: number };
+
+/** "212.5" or "$212.50" -> 21250 cents; null if it isn't a valid dollar amount. */
+function parseDollars(text: string) {
+  const cleaned = text.replace(/[$,\s]/g, "");
+  if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) return null;
+  return Math.round(Number(cleaned) * 100);
+}
+
+export default function DuesPaymentForm({
+  amountCents,
+  limits,
+  defaults,
+}: {
+  amountCents: number;
+  limits: Limits;
+  defaults: Defaults;
+}) {
   return (
     <Elements
       stripe={stripePromise}
@@ -28,15 +45,24 @@ export default function DuesPaymentForm({ amountCents, defaults }: { amountCents
         },
       }}
     >
-      <PaymentForm defaults={defaults} />
+      <PaymentForm defaults={defaults} initialAmountCents={amountCents} limits={limits} />
     </Elements>
   );
 }
 
-function PaymentForm({ defaults }: { defaults: Defaults }) {
+function PaymentForm({
+  defaults,
+  initialAmountCents,
+  limits,
+}: {
+  defaults: Defaults;
+  initialAmountCents: number;
+  limits: Limits;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const [payer, setPayer] = useState(defaults);
+  const [amountText, setAmountText] = useState((initialAmountCents / 100).toFixed(2));
   const [review, setReview] = useState<{ tokenId: string; quote: DuesQuote } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -52,8 +78,15 @@ function PaymentForm({ defaults }: { defaults: Defaults }) {
       setError("Please fill in your name, email, and property address.");
       return;
     }
+    const amountCents = parseDollars(amountText);
+    if (amountCents === null) return setError("Please enter the amount you're paying, like 200.00.");
+    if (amountCents < limits.minCents || amountCents > limits.maxCents) {
+      return setError(`Please enter an amount between ${money(limits.minCents)} and ${money(limits.maxCents)}.`);
+    }
     setBusy(true);
     try {
+      // Keeps the bank-account and card screens showing the right amount.
+      elements.update({ amount: amountCents });
       const { error: submitError } = await elements.submit();
       if (submitError) return setError(submitError.message ?? "Please check your payment details.");
 
@@ -66,7 +99,7 @@ function PaymentForm({ defaults }: { defaults: Defaults }) {
       });
       if (tokenError) return setError(tokenError.message ?? "Please check your payment details.");
 
-      const result = await getDuesQuote(confirmationToken.id);
+      const result = await getDuesQuote(confirmationToken.id, amountCents);
       if (result.error) return setError(result.error);
       setReview({ tokenId: confirmationToken.id, quote: result.quote! });
     } finally {
@@ -81,6 +114,7 @@ function PaymentForm({ defaults }: { defaults: Defaults }) {
     try {
       const result = await payDues({
         confirmationTokenId: review.tokenId,
+        amountCents: review.quote.baseCents,
         quotedTotalCents: review.quote.totalCents,
         payerName: payer.name,
         payerEmail: payer.email,
@@ -149,6 +183,22 @@ function PaymentForm({ defaults }: { defaults: Defaults }) {
         <input id="propertyAddress" className={inputClass} value={payer.address} disabled={!!review}
           onChange={(e) => setPayer({ ...payer, address: e.target.value })} autoComplete="street-address" required />
       </div>
+      <div>
+        <label className="block text-sm font-medium mb-1" htmlFor="amount">Amount you&apos;re paying</label>
+        <div className="relative max-w-48">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted">$</span>
+          <input id="amount" inputMode="decimal" className={`${inputClass} pl-7`} value={amountText} disabled={!!review}
+            onChange={(e) => setAmountText(e.target.value)}
+            onBlur={() => {
+              const cents = parseDollars(amountText);
+              if (cents !== null) setAmountText((cents / 100).toFixed(2));
+            }}
+            required />
+        </div>
+        <p className="text-xs text-muted mt-1">
+          Filled in with the amount currently due. Change it if you&apos;re paying a different amount.
+        </p>
+      </div>
 
       <div className={review ? "pointer-events-none opacity-60" : ""} aria-disabled={!!review}>
         <PaymentElement
@@ -172,7 +222,7 @@ function PaymentForm({ defaults }: { defaults: Defaults }) {
           <h3 className="font-semibold text-navy">Review your payment</h3>
           <dl className="text-sm space-y-1">
             <Row label="Paying with" value={review.quote.methodLabel} />
-            <Row label="Annual dues" value={money(review.quote.baseCents)} />
+            <Row label="Payment amount" value={money(review.quote.baseCents)} />
             {review.quote.feeCents > 0 && (
               <Row label="Credit card convenience fee (2.9% + $0.30)" value={money(review.quote.feeCents)} />
             )}

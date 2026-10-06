@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { requireRole } from "@/lib/authz";
+import { redirect } from "next/navigation";
+import { requireApprovedUser } from "@/lib/authz";
+import { canEditDues, canSeeDuesPayments } from "@/lib/dues";
 import { listDuesPayments, formatCents, isStripeConfigured } from "@/lib/stripe";
 import { HOA_TIME_ZONE } from "@/lib/format";
 import { formatInTimeZone } from "date-fns-tz";
@@ -15,7 +17,9 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default async function DuesAdminPage({ searchParams }: { searchParams: Promise<{ year?: string }> }) {
-  await requireRole("ADMIN", "BOARD_MEMBER");
+  const user = await requireApprovedUser();
+  if (!(await canSeeDuesPayments(user))) redirect("/members");
+  const canEdit = await canEditDues(user);
   const thisYear = new Date().getFullYear();
   const { year: yearParam } = await searchParams;
   const year = /^\d{4}$/.test(yearParam ?? "") ? Number(yearParam) : thisYear;
@@ -43,6 +47,13 @@ export default async function DuesAdminPage({ searchParams }: { searchParams: Pr
         Card and bank payments made through the website. Venmo and check payments aren&apos;t listed here. Stripe
         deposits these funds, minus its processing fees, to the HOA bank account.
       </p>
+      {canEdit && (
+        <p className="mb-4 text-sm">
+          <Link href="/admin/content/dues" className="text-primary font-medium hover:underline">
+            Change the dues amount, due date or late fee →
+          </Link>
+        </p>
+      )}
       <div className="flex gap-2 mb-6">
         {[thisYear, thisYear - 1, thisYear - 2].map((y) => (
           <Link key={y} href={`/admin/dues?year=${y}`}
@@ -54,7 +65,7 @@ export default async function DuesAdminPage({ searchParams }: { searchParams: Pr
 
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <Stat label="Homes paid online" value={String(paid.length)} />
-        <Stat label="Dues collected" value={formatCents(totals.dues)} />
+        <Stat label="Collected (before fees)" value={formatCents(totals.dues)} />
         <Stat label="Convenience fees collected" value={formatCents(totals.fees)} />
       </div>
 
@@ -69,7 +80,7 @@ export default async function DuesAdminPage({ searchParams }: { searchParams: Pr
                 <th className="px-3 py-2 font-medium">Property</th>
                 <th className="px-3 py-2 font-medium">Paid by</th>
                 <th className="px-3 py-2 font-medium">Method</th>
-                <th className="px-3 py-2 font-medium text-right">Dues</th>
+                <th className="px-3 py-2 font-medium text-right">Amount</th>
                 <th className="px-3 py-2 font-medium text-right">Fee</th>
                 <th className="px-3 py-2 font-medium text-right">Total</th>
                 <th className="px-3 py-2 font-medium">Status</th>
@@ -79,7 +90,10 @@ export default async function DuesAdminPage({ searchParams }: { searchParams: Pr
               {payments.map((p) => (
                 <tr key={p.id} className="border-b border-border last:border-0">
                   <td className="px-3 py-2 whitespace-nowrap">{formatInTimeZone(p.created, HOA_TIME_ZONE, "MMM d, yyyy")}</td>
-                  <td className="px-3 py-2">{p.propertyAddress}</td>
+                  <td className="px-3 py-2">
+                    {p.propertyAddress}
+                    {p.duesYear && <div className="text-xs text-muted">{p.duesYear} dues</div>}
+                  </td>
                   <td className="px-3 py-2">{p.payerName}<div className="text-xs text-muted">{p.payerEmail}</div></td>
                   <td className="px-3 py-2 capitalize whitespace-nowrap">{p.method}</td>
                   <td className="px-3 py-2 text-right">{formatCents(p.duesCents)}</td>

@@ -85,8 +85,3 @@ export const DOC_CATEGORY_LABELS: Record<DocCategory, string> = {
   COMMITTEE_SOCIAL: "Social Committee",
   COMMITTEE_LANDSCAPE: "Landscape Committee",
 };
-
-/** Treasurer-type access to online dues payments. */
-export function canViewDues(roles?: Role[] | null) {
-  return !!roles && (roles.includes("ADMIN") || roles.includes("BOARD_MEMBER"));
-}

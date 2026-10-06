@@ -7,7 +7,7 @@ import { roleLabels } from "@/lib/roles";
 import type { Role } from "@prisma/client";
 import { logoutAction } from "@/app/(auth)/actions";
 
-type NavUser = { name: string; roles: Role[] } | null;
+type NavUser = { name: string; roles: Role[]; isTreasurer?: boolean } | null;
 
 const ABOUT_LINKS = [
   { href: "/about", label: "Overview" },
@@ -85,6 +85,8 @@ export default function SiteNav({ user }: { user: NavUser }) {
     (user.roles ?? []).some((r) =>
       ["ADMIN", "MEMBERSHIP_COORDINATOR", "BOARD_MEMBER", "COMMITTEE_ARCH", "COMMITTEE_SOCIAL", "COMMITTEE_LANDSCAPE"].includes(r)
     );
+  // A Treasurer with no other admin role can only reach the dues pages.
+  const adminHref = isAdminish ? "/admin" : user?.isTreasurer ? "/admin/dues" : null;
 
   return (
     <header className="bg-primary text-white sticky top-0 z-40 shadow">
@@ -120,9 +122,9 @@ export default function SiteNav({ user }: { user: NavUser }) {
             >
               Contact Us
             </Link>
-            {isAdminish && (
+            {adminHref && (
               <Link
-                href="/admin"
+                href={adminHref}
                 className={`px-3 py-2 text-sm font-medium hover:bg-primary-dark rounded ${
                   pathname.startsWith("/admin") ? "bg-primary-dark" : ""
                 }`}
@@ -191,8 +193,8 @@ export default function SiteNav({ user }: { user: NavUser }) {
           <Link href="/contact" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>
             Contact Us
           </Link>
-          {isAdminish && (
-            <Link href="/admin" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>
+          {adminHref && (
+            <Link href={adminHref} className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>
               Admin
             </Link>
           )}

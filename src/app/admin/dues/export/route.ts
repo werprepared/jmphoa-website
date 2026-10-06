@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/authz";
-import { canViewDues } from "@/lib/roles";
+import { canSeeDuesPayments } from "@/lib/dues";
 import { listDuesPayments } from "@/lib/stripe";
 import { HOA_TIME_ZONE } from "@/lib/format";
 import { formatInTimeZone } from "date-fns-tz";
@@ -7,16 +7,17 @@ import { formatInTimeZone } from "date-fns-tz";
 /** CSV of successful online dues payments for a year, for entry into QuickBooks. */
 export async function GET(request: Request) {
   const user = await getCurrentUser();
-  if (!user || user.status !== "APPROVED" || !canViewDues(user.roles)) {
+  if (!user || user.status !== "APPROVED" || !(await canSeeDuesPayments(user))) {
     return new Response("Forbidden", { status: 403 });
   }
   const yearParam = new URL(request.url).searchParams.get("year") ?? "";
   const year = /^\d{4}$/.test(yearParam) ? Number(yearParam) : new Date().getFullYear();
 
   const payments = (await listDuesPayments(year)).filter((p) => p.status === "succeeded");
-  const header = ["Date", "Property Address", "Payer Name", "Payer Email", "Method", "Dues", "Convenience Fee", "Total", "Stripe Payment ID"];
+  const header = ["Date", "Dues Year", "Property Address", "Payer Name", "Payer Email", "Method", "Amount", "Convenience Fee", "Total", "Stripe Payment ID"];
   const rows = payments.map((p) => [
     formatInTimeZone(p.created, HOA_TIME_ZONE, "MM/dd/yyyy"),
+    p.duesYear,
     p.propertyAddress,
     p.payerName,
     p.payerEmail,

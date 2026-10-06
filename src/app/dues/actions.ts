@@ -9,22 +9,33 @@ import {
   DUES_PAYMENT_METHOD_TYPES,
   type DuesQuote,
 } from "@/lib/stripe";
+import { getDuesSettings, MIN_PAYMENT_CENTS, MAX_PAYMENT_CENTS } from "@/lib/dues";
+
+const amountSchema = z
+  .number()
+  .int()
+  .min(MIN_PAYMENT_CENTS, `The minimum online payment is $${MIN_PAYMENT_CENTS / 100}.`)
+  .max(MAX_PAYMENT_CENTS, `Online payments are limited to $${(MAX_PAYMENT_CENTS / 100).toLocaleString()}. Please contact the Board.`);
+
+const tokenSchema = z.string().regex(/^ctoken_\w+$/, "Invalid payment details.");
 
 export type QuoteResult = { quote: DuesQuote; error?: undefined } | { error: string; quote?: undefined };
 
 /** Looks up the entered payment method and returns the exact amount (including any credit card fee) before charging. */
-export async function getDuesQuote(confirmationTokenId: string): Promise<QuoteResult> {
-  if (!/^ctoken_\w+$/.test(confirmationTokenId)) return { error: "Invalid payment details." };
+export async function getDuesQuote(confirmationTokenId: string, amountCents: number): Promise<QuoteResult> {
+  const parsed = z.object({ token: tokenSchema, amount: amountSchema }).safeParse({ token: confirmationTokenId, amount: amountCents });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Please check your entries." };
   try {
     const token = await getStripe().confirmationTokens.retrieve(confirmationTokenId);
-    return { quote: quoteFromConfirmationToken(token) };
+    return { quote: quoteFromConfirmationToken(token, amountCents) };
   } catch (err) {
     return { error: errorMessage(err) };
   }
 }
 
 const paySchema = z.object({
-  confirmationTokenId: z.string().regex(/^ctoken_\w+$/, "Invalid payment details."),
+  confirmationTokenId: tokenSchema,
+  amountCents: amountSchema,
   quotedTotalCents: z.number().int().positive(),
   payerName: z.string().trim().min(1, "Please enter your name.").max(120),
   payerEmail: z.string().trim().email("Please enter a valid email."),
@@ -35,16 +46,19 @@ export type PayResult =
   | { status: Stripe.PaymentIntent.Status; clientSecret: string; error?: undefined }
   | { error: string; status?: undefined; clientSecret?: undefined };
 
-/** Creates and confirms the dues PaymentIntent. The amount is always recomputed here, never trusted from the browser. */
+/** Creates and confirms the dues PaymentIntent. The fee and total are always recomputed here, never trusted from the browser. */
 export async function payDues(input: z.input<typeof paySchema>): Promise<PayResult> {
   const parsed = paySchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Please check your entries." };
-  const { confirmationTokenId, quotedTotalCents, payerName, payerEmail, propertyAddress } = parsed.data;
+  const { confirmationTokenId, amountCents, quotedTotalCents, payerName, payerEmail, propertyAddress } = parsed.data;
 
   try {
     const stripe = getStripe();
-    const token = await stripe.confirmationTokens.retrieve(confirmationTokenId);
-    const quote = quoteFromConfirmationToken(token);
+    const [token, settings] = await Promise.all([
+      stripe.confirmationTokens.retrieve(confirmationTokenId),
+      getDuesSettings(),
+    ]);
+    const quote = quoteFromConfirmationToken(token, amountCents);
     if (quote.totalCents !== quotedTotalCents) {
       return { error: "The payment amount changed. Please review your payment again." };
     }
@@ -56,11 +70,12 @@ export async function payDues(input: z.input<typeof paySchema>): Promise<PayResu
         confirm: true,
         confirmation_token: confirmationTokenId,
         allowed_payment_method_types: [...DUES_PAYMENT_METHOD_TYPES],
-        description: `JMPHOA annual dues - ${propertyAddress}`,
+        description: `JMPHOA ${settings.year} dues - ${propertyAddress}`,
         receipt_email: payerEmail,
         statement_descriptor_suffix: "HOA DUES",
         metadata: {
           purpose: DUES_PURPOSE,
+          dues_year: String(settings.year),
           payer_name: payerName,
           payer_email: payerEmail,
           property_address: propertyAddress,
@@ -70,7 +85,7 @@ export async function payDues(input: z.input<typeof paySchema>): Promise<PayResu
         },
       },
       // A double-click or retry with the same token can never create a second charge.
-      { idempotencyKey: `dues-${confirmationTokenId}` },
+      { idempotencyKey: `dues-${confirmationTokenId}-${quote.totalCents}` },
     );
 
     return { status: intent.status, clientSecret: intent.client_secret! };

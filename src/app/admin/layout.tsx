@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { requireApprovedUser } from "@/lib/authz";
-import { canManageMembers, canEditSiteContent, canManageCalendar, canViewDues, isAdmin } from "@/lib/roles";
+import { canManageMembers, canEditSiteContent, canManageCalendar, isAdmin } from "@/lib/roles";
+import { canSeeDuesPayments } from "@/lib/dues";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireApprovedUser();
+  const showDues = await canSeeDuesPayments(user);
 
   const links = [
     { href: "/admin", label: "Dashboard", show: true },
@@ -11,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/content", label: "Site Content", show: canEditSiteContent(user.roles) },
     { href: "/admin/documents", label: "Documents", show: canManageCalendar(user.roles) },
     { href: "/admin/calendar", label: "Calendar", show: canManageCalendar(user.roles) },
-    { href: "/admin/dues", label: "Dues Payments", show: canViewDues(user.roles) },
+    { href: "/admin/dues", label: "Dues Payments", show: showDues },
     { href: "/admin/committees", label: "Committees", show: isAdmin(user.roles) },
     { href: "/admin/usage", label: "System Usage", show: isAdmin(user.roles) },
   ].filter((l) => l.show);

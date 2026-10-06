@@ -1,14 +1,15 @@
 import PageHeader from "@/components/PageHeader";
 import { getCurrentUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
+import { formatCents, isStripeConfigured, CARD_FEE_PERCENT, CARD_FEE_FIXED_CENTS } from "@/lib/stripe";
 import {
-  duesAmountCents,
-  creditCardFeeCents,
-  formatCents,
-  isStripeConfigured,
-  CARD_FEE_PERCENT,
-  CARD_FEE_FIXED_CENTS,
-} from "@/lib/stripe";
+  getDuesSettings,
+  amountDueNowCents,
+  duesNotice,
+  isPastDue,
+  MIN_PAYMENT_CENTS,
+  MAX_PAYMENT_CENTS,
+} from "@/lib/dues";
 import DuesPaymentForm from "./DuesPaymentForm";
 
 export const dynamic = "force-dynamic";
@@ -18,8 +19,9 @@ export const dynamic = "force-dynamic";
 export default async function DuesPage() {
   const venmo = process.env.VENMO_HANDLE || "@JMPHOA";
   const poBox = process.env.DUES_PO_BOX || "John Mitchell Preserve HOA, PO Box 000, Your City, ST 00000";
-  const amountCents = duesAmountCents();
   const onlineEnabled = isStripeConfigured();
+  const settings = await getDuesSettings();
+  const dueNowCents = amountDueNowCents(settings);
 
   const user = await getCurrentUser();
   const profile = user?.id
@@ -29,21 +31,27 @@ export default async function DuesPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Pay Association Fees"
-        subtitle={`Annual dues are ${formatCents(amountCents)} per home. Pay online by bank account or card, with Venmo, or by mail.`}
-      />
+      <PageHeader title="Pay Association Fees" subtitle={duesNotice(settings)} />
       <div className="max-w-xl mx-auto px-4 py-10 space-y-6">
+        {isPastDue(settings) && settings.lateFeeCents > 0 && (
+          <p className="bg-primary-light border border-primary/30 rounded-lg p-4 text-sm text-navy">
+            The due date has passed, so the amount due is now {formatCents(dueNowCents)}, including the{" "}
+            {formatCents(settings.lateFeeCents)} late fee.
+          </p>
+        )}
         {onlineEnabled && (
           <div className="bg-card border border-border rounded-lg p-6">
             <h2 className="font-semibold text-navy mb-2">Pay Online</h2>
             <p className="text-muted text-sm mb-4">
               Pay securely with a bank account (ACH) or a debit card at no extra cost. Credit card payments
-              include a {CARD_FEE_PERCENT}% + {formatCents(CARD_FEE_FIXED_CENTS)} convenience fee (
-              {formatCents(creditCardFeeCents(amountCents))} on{" "}
-              {formatCents(amountCents)}). You&apos;ll see the exact total before you pay.
+              include a {CARD_FEE_PERCENT}% + {formatCents(CARD_FEE_FIXED_CENTS)} convenience fee. You&apos;ll see the
+              exact total before you pay.
             </p>
-            <DuesPaymentForm amountCents={amountCents} defaults={defaults} />
+            <DuesPaymentForm
+              amountCents={dueNowCents}
+              limits={{ minCents: MIN_PAYMENT_CENTS, maxCents: MAX_PAYMENT_CENTS }}
+              defaults={defaults}
+            />
           </div>
         )}
         <div className="bg-card border border-border rounded-lg p-6">

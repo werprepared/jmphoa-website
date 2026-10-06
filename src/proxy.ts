@@ -32,17 +32,17 @@ export default auth((req) => {
   const roles = user.roles ?? [];
   if (roles.includes("ADMIN")) return NextResponse.next();
 
+  // Dues pages check the Treasurer board position themselves (it isn't in the session).
+  if (path.startsWith("/admin/dues") || path.startsWith("/admin/content/dues")) {
+    return NextResponse.next();
+  }
+
   if (path.startsWith("/admin/users")) {
     if (roles.includes("MEMBERSHIP_COORDINATOR")) return NextResponse.next();
     return NextResponse.redirect(new URL("/members", nextUrl));
   }
 
   if (path.startsWith("/admin/content") || path.startsWith("/admin/committees")) {
-    return NextResponse.redirect(new URL("/members", nextUrl));
-  }
-
-  if (path.startsWith("/admin/dues")) {
-    if (roles.includes("BOARD_MEMBER")) return NextResponse.next();
     return NextResponse.redirect(new URL("/members", nextUrl));
   }
 

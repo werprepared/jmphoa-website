@@ -20,12 +20,7 @@ export const DUES_PURPOSE = "hoa_dues";
 /** Payment methods offered online. Kept explicit so we always know whether a card is credit or debit. */
 export const DUES_PAYMENT_METHOD_TYPES = ["card", "us_bank_account"] as const;
 
-export function duesAmountCents() {
-  const n = Number(process.env.DUES_AMOUNT_CENTS ?? 20000);
-  return Number.isInteger(n) && n > 0 ? n : 20000;
-}
-
-/** Convenience fee for credit cards only: 2.9% + $0.30 of the dues amount. */
+/** Convenience fee for credit cards only: 2.9% + $0.30 of the amount being paid. */
 export const CARD_FEE_PERCENT = 2.9;
 export const CARD_FEE_FIXED_CENTS = 30;
 
@@ -44,10 +39,9 @@ export type DuesQuote = {
 /**
  * Works out what to charge for a ConfirmationToken. Only cards that Stripe reports as
  * `credit` get the convenience fee; debit, prepaid, unknown-funding cards and bank (ACH)
- * payments are charged the plain dues amount.
+ * payments are charged exactly the amount the payer entered.
  */
-export function quoteFromConfirmationToken(token: Stripe.ConfirmationToken): DuesQuote {
-  const baseCents = duesAmountCents();
+export function quoteFromConfirmationToken(token: Stripe.ConfirmationToken, baseCents: number): DuesQuote {
   const preview = token.payment_method_preview;
   if (!preview) throw new Error("Missing payment details.");
 
@@ -95,6 +89,7 @@ export type DuesPaymentRow = {
   payerEmail: string;
   propertyAddress: string;
   method: string;
+  duesYear: string;
   duesCents: number;
   feeCents: number;
   totalCents: number;
@@ -118,6 +113,7 @@ export async function listDuesPayments(year: number): Promise<DuesPaymentRow[]> 
       payerEmail: m.payer_email ?? "",
       propertyAddress: m.property_address ?? "",
       method: (m.payment_method ?? "").replace("_", " "),
+      duesYear: m.dues_year ?? "",
       duesCents: Number(m.dues_amount_cents ?? pi.amount),
       feeCents: Number(m.convenience_fee_cents ?? 0),
       totalCents: pi.amount,
