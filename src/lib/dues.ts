@@ -12,6 +12,8 @@ export const duesSettingsSchema = z.object({
   amountCents: z.number().int().min(100).max(10_000_00),
   dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Please enter a valid due date."),
   lateFeeCents: z.number().int().min(0).max(10_000_00),
+  /** Wording shown on the dues page; when empty, it's generated from the fields above. */
+  notice: z.string().trim().max(600).optional(),
 });
 
 export type DuesSettings = z.infer<typeof duesSettingsSchema>;
@@ -59,8 +61,13 @@ export function formatDueDate(dueDate: string, pattern = "MMMM d, yyyy") {
   return formatDateOnly(new Date(`${dueDate}T00:00:00Z`), pattern);
 }
 
-/** e.g. "Dues for 2026 are $200 if paid by May 31, 2026. A late fee of $15 is added for payments received after May 31." */
+/** The saved wording if there is one, otherwise the generated sentence. */
 export function duesNotice(settings: DuesSettings) {
+  return settings.notice || suggestedDuesNotice(settings);
+}
+
+/** e.g. "Dues for 2026 are $200 if paid by May 31, 2026. A late fee of $15 is added for payments received after May 31." */
+export function suggestedDuesNotice(settings: DuesSettings) {
   const base = `Dues for ${settings.year} are ${dollars(settings.amountCents)} if paid by ${formatDueDate(settings.dueDate)}.`;
   if (!settings.lateFeeCents) return base;
   return `${base} A late fee of ${dollars(settings.lateFeeCents)} is added for payments received after ${formatDueDate(settings.dueDate, "MMMM d")}.`;

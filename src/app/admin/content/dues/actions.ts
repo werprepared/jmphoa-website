@@ -22,6 +22,7 @@ export async function saveDuesSettingsAction(_prev: DuesSettingsState, formData:
     amountCents: toCents(formData.get("amount")),
     dueDate: String(formData.get("dueDate") ?? ""),
     lateFeeCents: toCents(formData.get("lateFee")),
+    notice: String(formData.get("notice") ?? "") || undefined,
   });
   if (!parsed.success) {
     const field = parsed.error.issues[0]?.path[0];
@@ -30,6 +31,7 @@ export async function saveDuesSettingsAction(_prev: DuesSettingsState, formData:
       amountCents: "Please enter the dues amount, like 200.00 (at least $1).",
       dueDate: "Please enter the due date.",
       lateFeeCents: "Please enter the late fee, like 15.00 (or 0 for none).",
+      notice: "The dues page wording is too long (600 characters max).",
     };
     return { error: messages[String(field)] ?? "Please check your entries." };
   }

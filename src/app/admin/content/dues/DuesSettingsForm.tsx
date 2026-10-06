@@ -29,9 +29,11 @@ export default function DuesSettingsForm({ settings }: { settings: DuesSettings 
   const [amount, setAmount] = useState((settings.amountCents / 100).toFixed(2));
   const [dueDate, setDueDate] = useState(settings.dueDate);
   const [lateFee, setLateFee] = useState((settings.lateFeeCents / 100).toFixed(2));
+  // null = use the suggested wording, which follows the fields above as they change.
+  const [customNotice, setCustomNotice] = useState<string | null>(settings.notice || null);
 
   const hasLateFee = Number(lateFee.replace(/[$,\s]/g, "")) > 0;
-  const preview =
+  const suggested =
     `Dues for ${year} are ${money(amount)} if paid by ${longDate(dueDate)}.` +
     (hasLateFee ? ` A late fee of ${money(lateFee)} is added for payments received after ${longDate(dueDate, false)}.` : "");
 
@@ -60,9 +62,24 @@ export default function DuesSettingsForm({ settings }: { settings: DuesSettings 
         </div>
       </div>
 
-      <div className="bg-background border border-border rounded p-3">
-        <div className="text-xs font-semibold uppercase text-muted tracking-wide mb-1">Shown on the dues page</div>
-        <p className="text-sm text-navy">{preview}</p>
+      <div>
+        <label className="block text-sm font-medium mb-1" htmlFor="notice">Wording shown on the dues page</label>
+        <textarea id="notice" rows={3} maxLength={600} className={inputClass}
+          value={customNotice ?? suggested}
+          onChange={(e) => setCustomNotice(e.target.value === suggested ? null : e.target.value)} />
+        <input type="hidden" name="notice" value={customNotice ?? ""} />
+        {customNotice === null ? (
+          <p className="text-xs text-muted mt-1">
+            Updates automatically as you change the fields above. Edit it to use your own wording.
+          </p>
+        ) : (
+          <p className="text-xs text-muted mt-1">
+            Your own wording won&apos;t change when you edit the fields above.{" "}
+            <button type="button" onClick={() => setCustomNotice(null)} className="text-primary font-medium hover:underline">
+              Use the suggested wording
+            </button>
+          </p>
+        )}
       </div>
 
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
