@@ -11,7 +11,7 @@ const LINKS = [
   { href: "/members/faq", label: "FAQ", desc: "Common questions about the HOA" },
   { href: "/members/documents", label: "HOA Documents", desc: "Bylaws, minutes, forms & more" },
   { href: "/members/survey", label: "Survey / Feedback", desc: "Tell us what you think" },
-  { href: "/members/dues", label: "Pay Association Fees", desc: "Venmo or mail-in instructions" },
+  { href: "/dues", label: "Pay Association Fees", desc: "Pay online, by Venmo, or by mail" },
   { href: "/members/profile", label: "My Profile", desc: "Update your directory listing" },
 ];
 

@@ -16,7 +16,7 @@ export default function Footer() {
             <li><Link href="/calendar" className="hover:text-white">Calendar</Link></li>
             <li><Link href="/members/faq" className="hover:text-white">FAQ</Link></li>
             <li><Link href="/members/documents" className="hover:text-white">HOA Documents</Link></li>
-            <li><Link href="/members/dues" className="hover:text-white">Pay Association Fees</Link></li>
+            <li><Link href="/dues" className="hover:text-white">Pay Association Fees</Link></li>
             <li><Link href="/contact" className="hover:text-white">Contact Us</Link></li>
           </ul>
         </div>

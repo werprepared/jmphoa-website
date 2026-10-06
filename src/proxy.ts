@@ -41,6 +41,11 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/members", nextUrl));
   }
 
+  if (path.startsWith("/admin/dues")) {
+    if (roles.includes("BOARD_MEMBER")) return NextResponse.next();
+    return NextResponse.redirect(new URL("/members", nextUrl));
+  }
+
   if (path.startsWith("/admin/calendar") || path.startsWith("/admin/documents")) {
     if (roles.some((r) => UPLOAD_ROLES.includes(r))) return NextResponse.next();
     return NextResponse.redirect(new URL("/members", nextUrl));

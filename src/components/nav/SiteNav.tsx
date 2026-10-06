@@ -26,7 +26,7 @@ const MEMBER_LINKS = [
   { href: "/members/arc-requests", label: "ARC Requests" },
   { href: "/calendar", label: "Calendar" },
   { href: "/members/survey", label: "Survey / Feedback" },
-  { href: "/members/dues", label: "Pay Association Fees" },
+  { href: "/dues", label: "Pay Association Fees" },
 ];
 
 function Dropdown({
