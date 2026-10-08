@@ -23,7 +23,7 @@ function longDate(iso: string, withYear = true) {
   });
 }
 
-export default function DuesSettingsForm({ settings }: { settings: DuesSettings }) {
+export default function DuesSettingsForm({ settings, mailAddress }: { settings: DuesSettings; mailAddress: string }) {
   const [state, formAction, pending] = useActionState<DuesSettingsState, FormData>(saveDuesSettingsAction, undefined);
   const [year, setYear] = useState(String(settings.year));
   const [amount, setAmount] = useState((settings.amountCents / 100).toFixed(2));
@@ -80,6 +80,15 @@ export default function DuesSettingsForm({ settings }: { settings: DuesSettings 
             </button>
           </p>
         )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1" htmlFor="mailAddress">Mail checks to</label>
+        <textarea id="mailAddress" name="mailAddress" rows={4} maxLength={300} className={inputClass}
+          defaultValue={mailAddress} />
+        <p className="text-xs text-muted mt-1">
+          Shown on the dues page exactly as typed. Press Enter to start a new line, for example after the PO box.
+        </p>
       </div>
 
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}

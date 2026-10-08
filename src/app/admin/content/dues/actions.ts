@@ -23,6 +23,13 @@ export async function saveDuesSettingsAction(_prev: DuesSettingsState, formData:
     dueDate: String(formData.get("dueDate") ?? ""),
     lateFeeCents: toCents(formData.get("lateFee")),
     notice: String(formData.get("notice") ?? "") || undefined,
+    // Normalize Windows line endings and drop trailing spaces on each line.
+    mailAddress:
+      String(formData.get("mailAddress") ?? "")
+        .replace(/\r\n?/g, "\n")
+        .split("\n")
+        .map((line) => line.trimEnd())
+        .join("\n") || undefined,
   });
   if (!parsed.success) {
     const field = parsed.error.issues[0]?.path[0];
@@ -32,6 +39,7 @@ export async function saveDuesSettingsAction(_prev: DuesSettingsState, formData:
       dueDate: "Please enter the due date.",
       lateFeeCents: "Please enter the late fee, like 15.00 (or 0 for none).",
       notice: "The dues page wording is too long (600 characters max).",
+      mailAddress: "The mailing address is too long (300 characters max).",
     };
     return { error: messages[String(field)] ?? "Please check your entries." };
   }

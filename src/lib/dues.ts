@@ -14,6 +14,8 @@ export const duesSettingsSchema = z.object({
   lateFeeCents: z.number().int().min(0).max(10_000_00),
   /** Wording shown on the dues page; when empty, it's generated from the fields above. */
   notice: z.string().trim().max(600).optional(),
+  /** Where to mail checks, one line per row (e.g. PO box, then city/state/ZIP). */
+  mailAddress: z.string().trim().max(300).optional(),
 });
 
 export type DuesSettings = z.infer<typeof duesSettingsSchema>;
@@ -59,6 +61,15 @@ export function amountDueNowCents(settings: DuesSettings, now = new Date()) {
 
 export function formatDueDate(dueDate: string, pattern = "MMMM d, yyyy") {
   return formatDateOnly(new Date(`${dueDate}T00:00:00Z`), pattern);
+}
+
+/** The saved check mailing address, falling back to the DUES_PO_BOX setting. */
+export function duesMailAddress(settings: DuesSettings) {
+  return (
+    settings.mailAddress ||
+    process.env.DUES_PO_BOX ||
+    "John Mitchell Preserve HOA, PO Box 000, Your City, ST 00000"
+  );
 }
 
 /** The saved wording if there is one, otherwise the generated sentence. */

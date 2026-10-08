@@ -7,6 +7,7 @@ import {
   getDuesSettings,
   amountDueNowCents,
   duesNotice,
+  duesMailAddress,
   isPastDue,
   MIN_PAYMENT_CENTS,
   MAX_PAYMENT_CENTS,
@@ -23,9 +24,9 @@ export default async function DuesPage() {
   const venmoUser = venmo.replace(/^.*@/, "").replace(/[^A-Za-z0-9_-]/g, "");
   const venmoUrl = `https://venmo.com/u/${venmoUser}`;
   const venmoQrSvg = await QRCode.toString(venmoUrl, { type: "svg", margin: 1, errorCorrectionLevel: "M" });
-  const poBox = process.env.DUES_PO_BOX || "John Mitchell Preserve HOA, PO Box 000, Your City, ST 00000";
   const onlineEnabled = isStripeConfigured();
   const settings = await getDuesSettings();
+  const mailAddress = duesMailAddress(settings);
   const dueNowCents = amountDueNowCents(settings);
 
   const user = await getCurrentUser();
@@ -90,7 +91,7 @@ export default async function DuesPage() {
           <p className="text-muted text-sm mb-3">
             Prefer to mail a check? Send it, along with your property address, to:
           </p>
-          <div className="whitespace-pre-line text-navy font-medium">{poBox}</div>
+          <div className="whitespace-pre-line text-navy font-medium">{mailAddress}</div>
         </div>
         <p className="text-xs text-muted">
           Questions about your balance or a payment? <a className="text-primary hover:underline" href="/contact">Contact the Board</a>.
