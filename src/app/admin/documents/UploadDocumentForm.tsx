@@ -7,24 +7,31 @@ import type { DocCategory } from "@prisma/client";
 
 export default function UploadDocumentForm({
   category,
-  folderId,
-  targetName,
+  folders,
+  defaultFolderId,
   members,
 }: {
   category: DocCategory;
-  folderId: string | null;
-  targetName: string;
+  folders: { id: string; label: string }[];
+  defaultFolderId: string;
   members: { id: string; name: string }[];
 }) {
   const [state, formAction, pending] = useActionState<UploadDocState, FormData>(uploadDocumentAction, undefined);
 
   return (
     <form action={formAction} className="bg-card border border-border rounded-lg p-4 space-y-3">
-      <h3 className="font-semibold text-navy text-sm">
-        Upload a document to: <span className="text-primary">{targetName}</span>
-      </h3>
+      <h3 className="font-semibold text-navy text-sm">Upload a document</h3>
       <input type="hidden" name="category" value={category} />
-      <input type="hidden" name="folderId" value={folderId || ""} />
+      <div>
+        <label htmlFor="folderId" className="block text-sm font-medium mb-1">Save to folder</label>
+        <select id="folderId" name="folderId" defaultValue={defaultFolderId}
+          className="w-full border border-border rounded px-3 py-2 text-sm bg-white">
+          <option value="">HOA Documents (top level, no folder)</option>
+          {folders.map((f) => (
+            <option key={f.id} value={f.id}>{f.label}</option>
+          ))}
+        </select>
+      </div>
       <input name="title" placeholder="Document title" required className="w-full border border-border rounded px-3 py-2 text-sm" />
       <input type="file" name="file" required className="text-sm" />
       <NotifyMembersField members={members} />

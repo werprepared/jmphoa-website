@@ -44,6 +44,12 @@ export async function uploadDocumentAction(_prev: UploadDocState, formData: Form
 
   if (!title) return { error: "Please enter a document title." };
   if (!(file instanceof File) || file.size === 0) return { error: "Please choose a file." };
+  if (folderId) {
+    const folder = await prisma.folder.findUnique({ where: { id: folderId }, select: { category: true, linkUrl: true } });
+    if (!folder || folder.category !== category || folder.linkUrl) {
+      return { error: "Please choose a folder from the list." };
+    }
+  }
 
   try {
     const fileUrl = await saveDocument(file);

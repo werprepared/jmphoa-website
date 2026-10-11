@@ -24,17 +24,36 @@ export default async function AdminDocumentsPage({
   const { category: categoryParam, folder: folderId } = await searchParams;
   const category = (allowedCategories.includes(categoryParam as DocCategory) ? categoryParam : allowedCategories[0]) as DocCategory;
 
-  const [subfolders, documents, currentFolder, members] = await Promise.all([
+  const [subfolders, documents, categoryFolders, members] = await Promise.all([
     prisma.folder.findMany({ where: { parentId: folderId ?? null, category }, orderBy: { name: "asc" } }),
     prisma.document.findMany({
       where: { folderId: folderId ?? null, category },
       orderBy: { title: "asc" },
     }),
-    folderId ? prisma.folder.findUnique({ where: { id: folderId } }) : null,
+    prisma.folder.findMany({
+      where: { category, linkUrl: null },
+      select: { id: true, name: true, parentId: true },
+      orderBy: { name: "asc" },
+    }),
     prisma.user.findMany({ where: { status: "APPROVED" }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
   ]);
 
-  const uploadTargetName = currentFolder?.name ?? DOC_CATEGORY_LABELS[category];
+  // Every real folder on this tab, shown as a path ("5. Architecture Committee / Minutes").
+  const byId = new Map(categoryFolders.map((f) => [f.id, f]));
+  const pathOf = (id: string) => {
+    const names: string[] = [];
+    for (let f = byId.get(id); f; f = f.parentId ? byId.get(f.parentId) : undefined) names.unshift(f.name);
+    return names.join(" / ");
+  };
+  const folderOptions = categoryFolders
+    .map((f) => ({ id: f.id, label: pathOf(f.id) }))
+    .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
+
+  // Members see one folder tree, so a file with no folder lands at the top of HOA Documents.
+  // On a committee/board tab, default to that tab's own top folder instead.
+  const firstTopFolder = categoryFolders.find((f) => !f.parentId || !byId.has(f.parentId));
+  const defaultFolderId =
+    folderId && byId.has(folderId) ? folderId : category !== "HOA_GENERAL" ? (firstTopFolder?.id ?? "") : "";
 
   return (
     <div>
@@ -93,7 +112,13 @@ export default async function AdminDocumentsPage({
         </ul>
       )}
 
-      <UploadDocumentForm category={category} folderId={folderId || null} targetName={uploadTargetName} members={members} />
+      <UploadDocumentForm
+        key={`${category}-${defaultFolderId}`}
+        category={category}
+        folders={folderOptions}
+        defaultFolderId={defaultFolderId}
+        members={members}
+      />
     </div>
   );
 }
