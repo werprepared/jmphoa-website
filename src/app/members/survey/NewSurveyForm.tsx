@@ -45,7 +45,7 @@ export default function NewSurveyForm({ members }: { members: { id: string; name
         <label className="block text-sm font-medium mb-1" htmlFor="attachment">
           Attach a document or picture (optional)
         </label>
-        <input id="attachment" name="attachment" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/png" className="text-sm" />
+        <input id="attachment" name="attachment" type="file" accept=".pdf,.doc,.docx,.odt,.xls,.xlsx,image/jpeg,image/png" className="text-sm" />
       </div>
       <NotifyMembersField members={members} />
       <div className="flex items-center justify-between">

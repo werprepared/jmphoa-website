@@ -5,6 +5,7 @@ import { put } from "@vercel/blob";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 
+const ODT_TYPE = "application/vnd.oasis.opendocument.text";
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ALLOWED_DOC_TYPES = [
   "application/pdf",
@@ -12,6 +13,7 @@ const ALLOWED_DOC_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ODT_TYPE,
   "image/jpeg",
   "image/png",
 ];
@@ -26,8 +28,11 @@ export class UploadError extends Error {}
  * public/uploads for local dev, where no Blob store is set up.
  */
 async function saveFile(file: File, allowed: string[]) {
-  if (!allowed.includes(file.type)) {
-    throw new UploadError(`File type "${file.type}" is not allowed.`);
+  // Browsers on machines without an ODF app often report .odt files as empty/octet-stream.
+  const isGenericType = !file.type || file.type === "application/octet-stream";
+  const type = isGenericType && path.extname(file.name).toLowerCase() === ".odt" ? ODT_TYPE : file.type;
+  if (!allowed.includes(type)) {
+    throw new UploadError(`File type "${type}" is not allowed.`);
   }
   if (file.size > MAX_BYTES) {
     throw new UploadError("File is too large (15MB max).");
@@ -40,6 +45,7 @@ async function saveFile(file: File, allowed: string[]) {
     try {
       const blob = await put(filename, file, {
         access: "public",
+        contentType: type,
         token: process.env.BLOB_READ_WRITE_TOKEN,
       });
       return blob.url;

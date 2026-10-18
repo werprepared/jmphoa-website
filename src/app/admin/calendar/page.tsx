@@ -69,7 +69,7 @@ export default async function AdminCalendarPage({
             type="file"
             name="attachments"
             multiple
-            accept=".pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/png"
+            accept=".pdf,.doc,.docx,.odt,.xls,.xlsx,image/jpeg,image/png"
             className="text-sm"
           />
         </div>
