@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DirectFileInput from "@/components/DirectFileInput";
 import { requireRole } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { saveEventAction, deleteEventAction, deleteEventAttachmentAction } from "./actions";
@@ -65,13 +66,7 @@ export default async function AdminCalendarPage({
         </label>
         <div>
           <label className="block text-xs text-muted mb-1">Attach documents (optional)</label>
-          <input
-            type="file"
-            name="attachments"
-            multiple
-            accept=".pdf,.doc,.docx,.odt,.xls,.xlsx,image/jpeg,image/png"
-            className="text-sm"
-          />
+          <DirectFileInput name="attachments" kind="document" multiple accept=".pdf,.doc,.docx,.odt,.xls,.xlsx,image/jpeg,image/png" />
         </div>
 
         {!editing && <NotifyMembersField members={members} />}

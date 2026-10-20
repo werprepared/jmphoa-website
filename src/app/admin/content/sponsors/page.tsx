@@ -1,4 +1,5 @@
 import { requireRole } from "@/lib/authz";
+import DirectFileInput from "@/components/DirectFileInput";
 import { prisma } from "@/lib/prisma";
 import { addSponsorAction, deleteSponsorAction } from "../actions";
 
@@ -19,7 +20,7 @@ export default async function SponsorsAdminPage() {
         <textarea name="blurb" placeholder="Short description (optional)" rows={2} className="w-full border border-border rounded px-3 py-2" />
         <div>
           <label className="block text-sm font-medium mb-1">Logo</label>
-          <input type="file" name="logo" accept="image/*" className="text-sm" />
+          <DirectFileInput name="logo" kind="image" accept="image/*" />
         </div>
         <button className="bg-primary hover:bg-primary-dark text-white text-sm font-medium px-4 py-2 rounded transition-colors">
           Add sponsor

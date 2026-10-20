@@ -1,5 +1,6 @@
 "use client";
 
+import DirectFileInput from "@/components/DirectFileInput";
 import { useActionState } from "react";
 import { updateProfileAction, type ProfileState } from "./actions";
 import SpouseField from "./SpouseField";
@@ -79,7 +80,7 @@ export default function ProfileForm({
         <label className="block text-sm font-medium mb-1" htmlFor="photo">
           Profile photo
         </label>
-        <input id="photo" name="photo" type="file" accept="image/*" className="text-sm" />
+        <DirectFileInput id="photo" name="photo" kind="image" accept="image/*" />
       </div>
 
       <Field label="Address" name="address" defaultValue={profile?.address} />

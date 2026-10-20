@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireApprovedUser } from "@/lib/authz";
-import { saveImage, saveDocument, UploadError } from "@/lib/upload";
+import { readUploads, UploadError } from "@/lib/upload";
 import { richTextIsEmpty } from "@/lib/richtext";
 
 export type PostState = { error?: string } | undefined;
@@ -19,14 +19,12 @@ export async function createPostAction(_prev: PostState, formData: FormData): Pr
   if (!category) return { error: "Please choose a valid category." };
 
   let imageUrl: string | undefined;
-  const photo = formData.get("photo");
-  if (photo instanceof File && photo.size > 0) {
-    try {
-      imageUrl = await saveImage(photo);
-    } catch (err) {
-      if (err instanceof UploadError) return { error: err.message };
-      throw err;
-    }
+  try {
+    const [photo] = await readUploads(formData, "photo", "image");
+    imageUrl = photo?.url;
+  } catch (err) {
+    if (err instanceof UploadError) return { error: err.message };
+    throw err;
   }
 
   await prisma.communityPost.create({ data: { authorId: user.id, categoryId, body, imageUrl } });
@@ -60,14 +58,12 @@ export async function createCommentAction(postId: string, formData: FormData) {
 
   let fileUrl: string | undefined;
   let fileName: string | undefined;
-  const file = formData.get("file");
-  if (file instanceof File && file.size > 0) {
-    try {
-      fileUrl = await saveDocument(file);
-      fileName = file.name;
-    } catch (err) {
-      console.error("Community comment attachment upload failed:", err);
-    }
+  try {
+    const [file] = await readUploads(formData, "file", "document");
+    fileUrl = file?.url;
+    fileName = file?.name;
+  } catch (err) {
+    console.error("Community comment attachment upload failed:", err);
   }
 
   await prisma.communityComment.create({ data: { postId, authorId: user.id, body, fileUrl, fileName } });

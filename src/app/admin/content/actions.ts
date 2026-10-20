@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/authz";
-import { saveImage, UploadError } from "@/lib/upload";
+import { readUploads, UploadError } from "@/lib/upload";
 import { richTextIsEmpty } from "@/lib/richtext";
 
 function str(v: FormDataEntryValue | null) {
@@ -17,14 +17,12 @@ export async function savePageContentAction(key: string, _prev: ContentState, fo
   await requireRole("ADMIN");
 
   let imageUrl: string | undefined;
-  const image = formData.get("image");
-  if (image instanceof File && image.size > 0) {
-    try {
-      imageUrl = await saveImage(image);
-    } catch (err) {
-      if (err instanceof UploadError) return { error: err.message };
-      throw err;
-    }
+  try {
+    const [image] = await readUploads(formData, "image", "image");
+    imageUrl = image?.url;
+  } catch (err) {
+    if (err instanceof UploadError) return { error: err.message };
+    throw err;
   }
 
   await prisma.pageContent.upsert({
@@ -80,13 +78,11 @@ export async function addSponsorAction(formData: FormData) {
   if (!name) return;
 
   let logoUrl: string | undefined;
-  const logo = formData.get("logo");
-  if (logo instanceof File && logo.size > 0) {
-    try {
-      logoUrl = await saveImage(logo);
-    } catch (err) {
-      console.error("Sponsor logo upload failed:", err);
-    }
+  try {
+    const [logo] = await readUploads(formData, "logo", "image");
+    logoUrl = logo?.url;
+  } catch (err) {
+    console.error("Sponsor logo upload failed:", err);
   }
 
   const count = await prisma.sponsor.count();

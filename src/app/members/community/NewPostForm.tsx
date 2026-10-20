@@ -1,5 +1,6 @@
 "use client";
 
+import DirectFileInput from "@/components/DirectFileInput";
 import { useActionState, useRef, useState } from "react";
 import { createPostAction, type PostState } from "./actions";
 import RichTextEditor from "@/components/RichTextEditor";
@@ -37,7 +38,7 @@ export default function NewPostForm({ categories }: { categories: Category[] }) 
       </select>
       <RichTextEditor key={editorKey} name="body" />
       <div className="flex items-center justify-between mt-2">
-        <input type="file" name="photo" accept="image/*" className="text-xs" />
+        <DirectFileInput name="photo" kind="image" accept="image/*" className="text-xs" />
         <button
           type="submit"
           disabled={pending}

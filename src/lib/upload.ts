@@ -2,11 +2,9 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 import { put } from "@vercel/blob";
-import { ALLOWED_DOC_TYPES, resolveFileType } from "@/lib/upload-types";
+import { ALLOWED_DOC_TYPES, ALLOWED_IMAGE_TYPES, allowedTypesFor, resolveFileType, type UploadKind } from "@/lib/upload-types";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
-
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 const MAX_BYTES = 15 * 1024 * 1024; // 15MB
 
@@ -65,4 +63,34 @@ export function isTrustedBlobUrl(value: string) {
 
 export function saveDocument(file: File) {
   return saveFile(file, ALLOWED_DOC_TYPES);
+}
+
+export type UploadedFile = { url: string; name: string; type: string };
+
+/**
+ * Collects the files submitted for a form field. Files the browser already uploaded straight to Blob arrive as
+ * `${field}Url` / `${field}Name` / `${field}Type` entries; anything posted as a raw file (small-file fallback)
+ * is saved here. Throws UploadError if a submitted link or type can't be trusted.
+ */
+export async function readUploads(formData: FormData, field: string, kind: UploadKind): Promise<UploadedFile[]> {
+  const urls = formData.getAll(`${field}Url`).map(String);
+  const names = formData.getAll(`${field}Name`).map(String);
+  const types = formData.getAll(`${field}Type`).map(String);
+  const allowed = allowedTypesFor(kind);
+
+  const results: UploadedFile[] = [];
+  urls.forEach((url, i) => {
+    if (!url) return;
+    if (!isTrustedBlobUrl(url) || !allowed.includes(types[i])) {
+      throw new UploadError("That upload could not be verified. Please try again.");
+    }
+    results.push({ url, name: names[i] || "file", type: types[i] });
+  });
+
+  for (const file of formData.getAll(field)) {
+    if (!(file instanceof File) || file.size === 0) continue;
+    const url = await (kind === "image" ? saveImage(file) : saveDocument(file));
+    results.push({ url, name: file.name, type: resolveFileType(file.name, file.type) });
+  }
+  return results;
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DirectFileInput from "@/components/DirectFileInput";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import PageHeader from "@/components/PageHeader";
@@ -125,7 +126,7 @@ export default async function ArcRequestDetailPage({ params }: { params: Promise
                 <label className="block text-xs text-muted mb-1" htmlFor="file">
                   Add a document
                 </label>
-                <input id="file" name="file" type="file" required className="text-sm" />
+                <DirectFileInput id="file" name="file" kind="document" required />
               </div>
               <button className="bg-white border border-border hover:border-primary text-navy text-sm font-medium px-4 py-2 rounded transition-colors">
                 Upload

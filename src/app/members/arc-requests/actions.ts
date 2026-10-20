@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireApprovedUser, requireRole } from "@/lib/authz";
 import { canDecideArcRequests } from "@/lib/roles";
-import { saveDocument, UploadError } from "@/lib/upload";
+import { readUploads, UploadError } from "@/lib/upload";
 import { sendMail } from "@/lib/mailer";
 import { SITE_URL } from "@/lib/notify";
 import { arcFolderLabel, ARC_DECISION_LABELS, ARC_MIN_START_DAYS } from "@/lib/arc";
@@ -26,17 +26,14 @@ const ATTACHMENT_FIELDS: { field: string; label: ArcAttachmentLabel }[] = [
 
 async function saveAttachments(arcRequestId: string, uploadedById: string, formData: FormData, fields: { field: string; label: ArcAttachmentLabel }[]) {
   for (const { field, label } of fields) {
-    const files = formData.getAll(field);
-    for (const file of files) {
-      if (!(file instanceof File) || file.size === 0) continue;
-      try {
-        const fileUrl = await saveDocument(file);
+    try {
+      for (const file of await readUploads(formData, field, "document")) {
         await prisma.arcAttachment.create({
-          data: { arcRequestId, label, fileUrl, fileName: file.name, uploadedById },
+          data: { arcRequestId, label, fileUrl: file.url, fileName: file.name, uploadedById },
         });
-      } catch (err) {
-        console.error("ARC attachment upload failed:", err);
       }
+    } catch (err) {
+      console.error("ARC attachment upload failed:", err);
     }
   }
 }
@@ -125,12 +122,12 @@ export async function addArcAttachmentAction(id: string, formData: FormData) {
   if (!isOwner && !isCommittee) throw new Error("You don't have permission to add documents to this request.");
 
   const label: ArcAttachmentLabel = isCommittee && !isOwner ? "COMMITTEE_RESPONSE" : "OTHER";
-  const file = formData.get("file");
-  if (file instanceof File && file.size > 0) {
+  {
     try {
-      const fileUrl = await saveDocument(file);
+      const [file] = await readUploads(formData, "file", "document");
+      if (!file) throw new UploadError("No file");
       await prisma.arcAttachment.create({
-        data: { arcRequestId: id, label, fileUrl, fileName: file.name, uploadedById: user.id },
+        data: { arcRequestId: id, label, fileUrl: file.url, fileName: file.name, uploadedById: user.id },
       });
 
       if (request.status === "PROCESSING") {

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireApprovedUser } from "@/lib/authz";
-import { saveImage, UploadError } from "@/lib/upload";
+import { readUploads, UploadError } from "@/lib/upload";
 
 export type ProfileState = { error?: string; success?: boolean } | undefined;
 
@@ -37,14 +37,12 @@ export async function updateProfileAction(_prev: ProfileState, formData: FormDat
   if (!firstName || !lastName) return { error: "Please enter both a first and last name." };
 
   let photoUrl: string | undefined;
-  const photo = formData.get("photo");
-  if (photo instanceof File && photo.size > 0) {
-    try {
-      photoUrl = await saveImage(photo);
-    } catch (err) {
-      if (err instanceof UploadError) return { error: err.message };
-      throw err;
-    }
+  try {
+    const [photo] = await readUploads(formData, "photo", "image");
+    photoUrl = photo?.url;
+  } catch (err) {
+    if (err instanceof UploadError) return { error: err.message };
+    throw err;
   }
 
   // Only trust a submitted spouseId if it's really a linkable approved member (not tampered with, not yourself).

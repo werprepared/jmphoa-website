@@ -6,19 +6,16 @@ import { format } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/authz";
 import { notifyMembers, readNotifyChoice, SITE_URL } from "@/lib/notify";
-import { saveDocument } from "@/lib/upload";
+import { readUploads } from "@/lib/upload";
 import { richTextIsEmpty } from "@/lib/richtext";
 
 async function saveEventAttachments(eventId: string, formData: FormData) {
-  const files = formData.getAll("attachments");
-  for (const file of files) {
-    if (!(file instanceof File) || file.size === 0) continue;
-    try {
-      const fileUrl = await saveDocument(file);
-      await prisma.eventAttachment.create({ data: { eventId, fileUrl, fileName: file.name } });
-    } catch (err) {
-      console.error("Event attachment upload failed:", err);
+  try {
+    for (const file of await readUploads(formData, "attachments", "document")) {
+      await prisma.eventAttachment.create({ data: { eventId, fileUrl: file.url, fileName: file.name } });
     }
+  } catch (err) {
+    console.error("Event attachment upload failed:", err);
   }
 }
 

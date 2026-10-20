@@ -1,5 +1,6 @@
 "use client";
 
+import DirectFileInput from "@/components/DirectFileInput";
 import { useActionState, useState } from "react";
 import { createCommentAction, deletePostAction, updatePostAction, type PostState } from "./actions";
 import RichText from "@/components/RichText";
@@ -171,7 +172,7 @@ export default function PostCard({
                 placeholder="Write a comment..."
                 className="flex-1 border border-border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
-              <input type="file" name="file" className="text-xs" />
+              <DirectFileInput name="file" kind="document" className="text-xs" />
               <button className="text-sm text-primary font-medium">Reply</button>
             </form>
           </>

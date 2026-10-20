@@ -1,5 +1,6 @@
 "use client";
 
+import DirectFileInput from "@/components/DirectFileInput";
 import { useActionState, useState } from "react";
 import { createArcRequestAction, type CreateArcRequestState } from "../actions";
 import { ARC_REQUEST_TYPE_LABELS, ARC_MIN_START_DAYS } from "@/lib/arc";
@@ -46,7 +47,7 @@ function FileField({ label, name, help }: { label: string; name: string; help?: 
       <label className="block text-sm font-medium mb-1" htmlFor={name}>
         {label}
       </label>
-      <input id={name} name={name} type="file" className="text-sm" />
+      <DirectFileInput id={name} name={name} kind="document" />
       {help && <p className="text-xs text-muted mt-1">{help}</p>}
     </div>
   );

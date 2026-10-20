@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireApprovedUser } from "@/lib/authz";
 import { isAdmin } from "@/lib/roles";
 import { SURVEY_VOTE_POINTS, isSurveyVote } from "@/lib/survey";
-import { saveDocument, UploadError } from "@/lib/upload";
+import { readUploads, UploadError } from "@/lib/upload";
 import { notifyMembers, readNotifyChoice, SITE_URL } from "@/lib/notify";
 
 export type SurveyState = { error?: string } | undefined;
@@ -18,15 +18,13 @@ export async function createSurveyAction(_prev: SurveyState, formData: FormData)
 
   let attachmentUrl: string | undefined;
   let attachmentName: string | undefined;
-  const file = formData.get("attachment");
-  if (file instanceof File && file.size > 0) {
-    try {
-      attachmentUrl = await saveDocument(file);
-      attachmentName = file.name;
-    } catch (err) {
-      if (err instanceof UploadError) return { error: err.message };
-      throw err;
-    }
+  try {
+    const [attachment] = await readUploads(formData, "attachment", "document");
+    attachmentUrl = attachment?.url;
+    attachmentName = attachment?.name;
+  } catch (err) {
+    if (err instanceof UploadError) return { error: err.message };
+    throw err;
   }
 
   await prisma.survey.create({

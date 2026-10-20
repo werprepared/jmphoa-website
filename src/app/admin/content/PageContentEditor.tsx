@@ -1,5 +1,6 @@
 "use client";
 
+import DirectFileInput from "@/components/DirectFileInput";
 import { useActionState } from "react";
 import RichTextEditor from "@/components/RichTextEditor";
 import { savePageContentAction, type ContentState } from "./actions";
@@ -41,7 +42,7 @@ export default function PageContentEditor({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={block.imageUrl} alt="" className="h-32 w-auto rounded mb-2 border border-border object-cover" />
         )}
-        <input type="file" name="image" accept="image/*" className="text-sm" />
+        <DirectFileInput name="image" kind="image" accept="image/*" />
       </div>
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
       {state?.success && <p className="text-sm text-primary">Saved.</p>}

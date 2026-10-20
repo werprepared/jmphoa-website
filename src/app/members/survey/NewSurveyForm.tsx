@@ -1,5 +1,6 @@
 "use client";
 
+import DirectFileInput from "@/components/DirectFileInput";
 import { useActionState, useRef, useState } from "react";
 import { createSurveyAction, type SurveyState } from "./actions";
 import NotifyMembersField from "@/components/NotifyMembersField";
@@ -45,7 +46,7 @@ export default function NewSurveyForm({ members }: { members: { id: string; name
         <label className="block text-sm font-medium mb-1" htmlFor="attachment">
           Attach a document or picture (optional)
         </label>
-        <input id="attachment" name="attachment" type="file" accept=".pdf,.doc,.docx,.odt,.xls,.xlsx,image/jpeg,image/png" className="text-sm" />
+        <DirectFileInput id="attachment" name="attachment" kind="document" accept=".pdf,.doc,.docx,.odt,.xls,.xlsx,image/jpeg,image/png" />
       </div>
       <NotifyMembersField members={members} />
       <div className="flex items-center justify-between">
