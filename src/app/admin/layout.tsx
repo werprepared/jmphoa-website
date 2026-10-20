@@ -16,6 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/dues", label: "Dues Payments", show: showDues },
     { href: "/admin/committees", label: "Committees", show: isAdmin(user.roles) },
     { href: "/admin/usage", label: "System Usage", show: isAdmin(user.roles) },
+    { href: "/admin/storage", label: "Storage Cleanup", show: isAdmin(user.roles) },
   ].filter((l) => l.show);
 
   return (
