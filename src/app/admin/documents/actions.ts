@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireApprovedUser } from "@/lib/authz";
 import { uploadableCategoriesForRole } from "@/lib/roles";
-import { saveDocument, UploadError } from "@/lib/upload";
+import { saveDocument, isTrustedBlobUrl, UploadError } from "@/lib/upload";
+import { ALLOWED_DOC_TYPES } from "@/lib/upload-types";
 import { notifyMembers, readNotifyChoice, SITE_URL } from "@/lib/notify";
 import type { DocCategory } from "@prisma/client";
 
@@ -41,9 +42,17 @@ export async function uploadDocumentAction(_prev: UploadDocState, formData: Form
   const title = String(formData.get("title") || "").trim();
   const folderId = String(formData.get("folderId") || "") || null;
   const file = formData.get("file");
+  const uploadedUrl = String(formData.get("fileUrl") || "");
+  const uploadedType = String(formData.get("fileType") || "");
 
   if (!title) return { error: "Please enter a document title." };
-  if (!(file instanceof File) || file.size === 0) return { error: "Please choose a file." };
+  if (uploadedUrl) {
+    if (!isTrustedBlobUrl(uploadedUrl) || !ALLOWED_DOC_TYPES.includes(uploadedType)) {
+      return { error: "That upload could not be verified. Please try again." };
+    }
+  } else if (!(file instanceof File) || file.size === 0) {
+    return { error: "Please choose a file." };
+  }
   if (folderId) {
     const folder = await prisma.folder.findUnique({ where: { id: folderId }, select: { category: true, linkUrl: true } });
     if (!folder || folder.category !== category || folder.linkUrl) {
@@ -52,9 +61,10 @@ export async function uploadDocumentAction(_prev: UploadDocState, formData: Form
   }
 
   try {
-    const fileUrl = await saveDocument(file);
+    const fileUrl = uploadedUrl || (await saveDocument(file as File));
+    const fileType = uploadedUrl ? uploadedType : (file as File).type;
     await prisma.document.create({
-      data: { title, fileUrl, fileType: file.type, category, folderId, uploadedById: user.id },
+      data: { title, fileUrl, fileType, category, folderId, uploadedById: user.id },
     });
   } catch (err) {
     if (err instanceof UploadError) return { error: err.message };
